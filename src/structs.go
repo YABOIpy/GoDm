@@ -12,8 +12,6 @@ type ChannelID struct {
 	ID 		string `json:"id,omitempty"`
 }
 
-
-
 type Config struct {
 	Headers map[string]string
 	Dcfd	string
@@ -59,4 +57,25 @@ var (
 		},
 	}
 	Cookies = "__dcfduid=" + cookies().Dcfd + "; " + "__sdcfduid=" + cookies().Sdcfd + "; "
+	grn = "\033[32m"
+	red = "\033[31m"
+	clr = "\033[36m"
+	r   = "\033[39m"
+
+	Logo = `
+	____`+clr+`_____`+r+`__`+clr+`____     `+r+`____`+clr+`____`+r+`____`+clr+`__  ___
+	`+r+`__`+clr+`  ____/`+r+`_  `+clr+`__ \    `+r+`___`+clr+`  __ \`+r+`__`+clr+`   |/  /
+	`+r+`_ `+clr+` / __ `+r+`_`+clr+`  / / /    `+r+`__`+clr+`  / / /`+r+`_`+clr+`  /|_/ / 
+	`+clr+`/ /_/ / / /_/ /     `+r+`_  `+clr+`/_/ /`+r+`_`+clr+`  /  / /  
+	\____/  \____/      /_____/ /_/  /_/   
+    
+	[`+r+`Go Discord Mass Dm`+clr+`]		~`+r+`YABOI`+clr+`
+	[`+r+`1`+clr+`]`+r+` Mass DM `+clr+`
+	[`+r+`2`+clr+`]`+r+` Dm Spam `+clr+`
+	[`+r+`3`+clr+`]`+r+` React Verify `+clr+`
+	[`+r+`4`+clr+`]`+r+` Joiner `+clr+`
+	[`+r+`5`+clr+`]`+r+` Leaver 
+
+	Choice `+clr+`>>:`+r+` `
+
 )
