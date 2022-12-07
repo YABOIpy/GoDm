@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"unicode/utf8"
 	"io/ioutil"
+	"os/exec"
 	"bytes"
 	"fmt"
 	"os"
@@ -31,7 +32,7 @@ func (Xc *Config)WebSock(Token string) {
 	err = ws.WriteMessage(websocket.TextMessage, webload)
 	Xc.Errs(err)
 	_, _, _ = ws.ReadMessage()
-	fmt.Println("[>] Connected to Websocket")
+	fmt.Println(""+clr+"▏"+r+"("+clr+"o"+r+") Connected to "+clr+"Websocket"+r+"")
 }
 
 
@@ -128,7 +129,7 @@ func (Xc *Config) Decerr(resp http.Response) {
 	Xc.Errs(err)
 	var data interface{}
 	json.Unmarshal(body, &data)
-	fmt.Print(data)
+	fmt.Println(data)
 }
 
 
@@ -142,6 +143,12 @@ func content(payload string) Config {
 	amt := utf8.RuneCountInString(payload)
 	content.Length = amt
 	return content
+}
+
+func (Xc *Config) Cls() {
+	cmd := exec.Command("cmd", "/c", "cls") 
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 }
 
 func (Xc *Config) Errs(err error) {
