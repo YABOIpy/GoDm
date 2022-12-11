@@ -16,24 +16,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (Xc *Config)WebSock(Token string) {
-	var dialer websocket.Dialer
-	ws, _, err := dialer.Dial("wss://gateway.discord.gg/?v=9&encoding=json", nil)
-	Xc.Errs(err)
-	webload, _ := json.Marshal(&Connect{
-		Token:         Token,
-		Conn:          ws,
-		in:            make(chan string),
-		out:           make(chan []byte),
-		Messages:      make(chan []byte),
-		closeChan:     make(chan struct{}),
-		Reactions:     make(chan []byte),
-	})
-	err = ws.WriteMessage(websocket.TextMessage, webload)
-	Xc.Errs(err)
-	_, _, _ = ws.ReadMessage()
-	fmt.Println(""+clr+"▏"+r+"("+clr+"o"+r+") Connected to "+clr+"Websocket"+r+"")
-}
+
 
 
 func (Xc *Config) BuildNum() {
@@ -88,6 +71,7 @@ func (Xc *Config) Config() Config {
 }
 
 
+
 func (Xc *Config) ReadFile(files string) ([]string, error) {
 	file, err := os.Open(files)
 	Xc.Errs(err)
@@ -100,7 +84,13 @@ func (Xc *Config) ReadFile(files string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-
+func (Xc *Config) WriteFile(files string, item string) {
+	f, err := os.OpenFile(files, os.O_RDWR|os.O_APPEND, 0660)
+	Xc.Errs(err)
+	defer f.Close()
+	_, ers := f.WriteString(item + "\n")
+	Xc.Errs(ers)
+}
 
 func cookies() Config {
 	Xc := Config{}
@@ -131,7 +121,15 @@ func (Xc *Config) Decerr(resp http.Response) {
 	json.Unmarshal(body, &data)
 	fmt.Println(data)
 }
-
+//gecko
+func contains(elems []string, v string) bool {
+	for _, s := range elems {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
 
 func (Xc * Config) Marsh(payload map[string]string) []byte {
 	x,_ := json.Marshal(payload)
@@ -155,6 +153,62 @@ func (Xc *Config) Errs(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+
+
+func (Xc *Config) WebSock(token string) {
+
+	dialer := websocket.Dialer{}
+	ws, _, err := dialer.Dial("wss://gateway.discord.gg/?encoding=json&v=9&compress=zlib-stream", http.Header{
+		"Origin": []string{"https://discord.com"},
+		"User-Agent": []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"},
+	})
+	Xc.Errs(err)
+	_, _, _ = ws.ReadMessage()
+	Payload, _ := json.Marshal(&PayloadWsLogin{
+		Op: 2,
+		D: WsD{
+			Token:        token,
+			Capabilities: 125,
+			Properties: XProperties{
+				Os:                     "Windows",
+				Browser:                "Chrome",
+				Device:                 "",
+				SystemLocale:           "en-US",
+				BrowserUserAgent:       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
+				BrowserVersion:         "107.0.0.0",
+				OsVersion:              "10",
+				Referrer:               "https://www.google.com",
+				ReferringDomain:        "www.google.com",
+				ReferrerCurrent:        "",
+				ReferringDomainCurrent: "",
+				ReleaseChannel:         "stable",
+				ClientBuildNumber:      158183,
+				ClientEventSource:      nil,
+			},
+		},
+		Presence: WsPresence{
+			Status:     "online",
+			Since:      0,
+			Activities: nil,
+			Afk:        false,
+		},
+		Compress: false,
+		ClientState: WsClientState{
+			GuildHashes:              WsGH{},
+			HighestLastMessageID:     "0",
+			ReadStateVersion:         0,
+			UserGuildSettingsVersion: -1,
+			UserSettingsVersion:      -1,
+		},
+	})
+	err = ws.WriteMessage(websocket.TextMessage, Payload)
+	Xc.Errs(err)
+	_, _, _ = ws.ReadMessage()
+	_, _, _ = ws.ReadMessage()
+	fmt.Println(""+clr+"▏"+r+"("+clr+"o"+r+") Connected to "+clr+"Websocket"+r+"")
+	ws.Close()
 }
 
 
