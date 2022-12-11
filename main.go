@@ -1,16 +1,16 @@
 package main
 
-
 import (
 	"fmt"
+	"massdm/src"
+	"strconv"
 	"sync"
 	"time"
-	"strconv"
-	"massdm/src"
 )
 
 var (
 	c = massdm.X()
+	z = massdm.T()
 )
 
 
@@ -23,7 +23,7 @@ func MassDm(message string) {
 
 	var wg sync.WaitGroup
 	wg.Add(len(ids))
-	//start := time.Now()
+	
 	for i := 0; i < len(Token); i++ {
 		go func(i int) {
 			defer wg.Done()
@@ -47,7 +47,6 @@ func MassDm(message string) {
 	wg.Wait()
 	
 }
-
 
 
 func Spam_Dm(UserID string, message string) {
@@ -98,6 +97,83 @@ func Join(invite string) {
 }
 
 
+func Check() {
+	token, err := c.ReadFile("tokens.txt")
+	c.Errs(err)
+	var wg sync.WaitGroup
+	wg.Add(len(token))
+	start := time.Now()
+	for i := 0; i < len(token); i++ {
+		go func(i int) {
+			defer wg.Done()
+			z.Check(token[i])
+			if z.Resp == true {
+				c.WriteFile("data/valid.txt",token[i])
+			} else if z.Resp == false {
+				c.WriteFile("data/locked.txt",token[i])
+			} else {
+				c.WriteFile("data/invalid.txt",token[i])
+			}
+			
+		}(i)
+	}
+	wg.Wait()
+	elapsed := time.Since(start)
+	fmt.Println("[\033[32m✓\033[39m] (TIME\033[39m):", elapsed.String()[:4]+"Ms", "\033[39m(\033[33mLOCKED\033[39m):", z.Locked, "(\033[31mINVALID\033[39m):", z.Invalid, "(\033[32mVALID\033[39m):", z.Valid , "(\u001b[34;1mTOTAL\033[39m):", z.All)
+
+}
+
+func Rules(invite string, ID string) {
+
+	Token, err := c.ReadFile("tokens.txt")
+	c.Errs(err)
+
+	var wg sync.WaitGroup
+	wg.Add(len(Token))
+
+	for i := 0; i < len(Token); i++ {
+		go func(i int) {
+			defer wg.Done()
+			if c.Config().Settings.Websock == true {
+				c.WebSock(Token[i])							
+			}
+			c.Agree(Token[i], invite, ID)
+		}(i)
+	}
+	wg.Wait()
+}
+
+
+
+func Raid(message string, ID string) {
+
+	Token, err := c.ReadFile("tokens.txt")
+	c.Errs(err)
+
+	var wg sync.WaitGroup
+	wg.Add(len(Token))
+
+	for i := 0; i < len(Token); i++ {
+		go func(i int) {
+			defer wg.Done()
+			if c.Config().Settings.Websock == true {
+				c.WebSock(Token[i])							
+			}
+			c.Raider(Token[i], message, ID)
+		}(i)
+	}
+	wg.Wait()
+}
+
+
+func Scrape(Token string, ID string) {
+	if c.Config().Settings.Websock == true {
+		c.WebSock(Token)							
+	}
+	c.Scrape_ID(Token, ID)
+}
+
+
 
 
 func main() {
@@ -107,7 +183,7 @@ func main() {
 	fmt.Scanln(&choice)
 	if choice == 1 {
 		var msg string
-		fmt.Print("[Message]>: ")
+		fmt.Print("	[Message]>: ")
 		MassDm(msg)
 		fmt.Scanln(&choice)
 	} else if choice == 2 {
@@ -127,7 +203,28 @@ func main() {
 	} else if choice == 5 {
 
 	} else if choice == 6 {
-
+		var invite, ID string
+		fmt.Print("	discord.gg/")
+		fmt.Scanln(&invite)
+		fmt.Print("	[ServerID]>: ")
+		fmt.Scanln(&ID)
+		Rules(invite, ID)
+	} else if choice == 7 {
+		var message, ID string
+		fmt.Print("	[Message]>: ")
+		fmt.Scanln(&message)
+		fmt.Print("	[ChannelID]>: ")
+		fmt.Scanln(&ID)
+		Raid(message, ID)
+	} else if choice == 8 {
+		var token, ID string
+		fmt.Print("	[Token]>: ")
+		fmt.Scanln(&token)
+		fmt.Print("	[ServerID]>: ")
+		fmt.Scanln(&ID)
+		Scrape(token, ID)
+	} else if choice == 9 {
+		Check()
 	} else {
 		fmt.Println("	Wrong Input")
 		time.Sleep(1 *time.Second)
