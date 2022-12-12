@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"bufio"
 	"massdm/src"
 	"strconv"
 	"sync"
@@ -195,11 +196,13 @@ func main() {
 	fmt.Print(massdm.Logo)
 	var choice int
 	fmt.Scanln(&choice)
+	scn := bufio.NewScanner(os.Stdin)
 	if choice == 1 {
-		var msg string
 		fmt.Print("	[Message]>: ")
+		scn.Scan()
+		msg := scn.Text()
 		MassDm(msg)
-		fmt.Scanln(&choice)
+		
 	} else if choice == 2 {
 		var msg, ID string
 		fmt.Print("	[UserID]>: ")
