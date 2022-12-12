@@ -98,7 +98,7 @@ func Join(invite string) {
 	}
 	wg.Wait()
 	fmt.Println("Going Back to menu...")
-	time.Sleep(5 *time.Second)
+	time.Sleep(3 *time.Second)
 	main()
 }
 
@@ -127,7 +127,7 @@ func Check() {
 	elapsed := time.Since(start)
 	fmt.Println("[\033[32m✓\033[39m] (TIME\033[39m):", elapsed.String()[:4]+"Ms", "\033[39m(\033[33mLOCKED\033[39m):", z.Locked, "(\033[31mINVALID\033[39m):", z.Invalid, "(\033[32mVALID\033[39m):", z.Valid , "(\u001b[34;1mTOTAL\033[39m):", z.All)
 	fmt.Println("Going Back to menu...")
-	time.Sleep(5 *time.Second)
+	time.Sleep(3 *time.Second)
 	main()
 }
 
@@ -150,7 +150,7 @@ func Rules(invite string, ID string) {
 	}
 	wg.Wait()
 	fmt.Println("Going Back to menu...")
-	time.Sleep(5 *time.Second)
+	time.Sleep(3 *time.Second)
 	main()
 }
 
@@ -183,7 +183,7 @@ func Scrape(Token string, ID string) {
 	}
 	c.Scrape_ID(Token, ID)
 	fmt.Println("Going Back to menu...")
-	time.Sleep(5 *time.Second)
+	time.Sleep(3 *time.Second)
 	main()
 }
 
