@@ -1,0 +1,3 @@
+thanks to v4nsh4j and dany for the http client
+ive been dealing with net/http getting errors for a long time
+thanks to them for solving it with their client
