@@ -1,12 +1,8 @@
 {
-    "Config": {
-        "Proxy": "us.proxiware.com:2000"
-    },
+    "Proxy": "us.proxiware.com:2000"
     "Settings": {
         "Websocket": true,
         "Block_Usr": false,
         "Close_DM": false
     }
-
-    
 }
