@@ -88,7 +88,7 @@ func (Xc *Config) CloseDm(ID string, Token string, Cookies string) {
 
 func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 	payload := []byte("{\"recipients\":[\"" + strconv.Itoa(ID) + "\"]}")
-	Lenght := strconv.Itoa(content(string(payload)).Length)
+	//Lenght := strconv.Itoa(content(string(payload)).Length)
 	req, err := http.NewRequest("POST", "https://discord.com/api/v9/users/@me/channels",
 		bytes.NewBuffer(payload),
 	)
@@ -99,7 +99,7 @@ func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 		"accept-encoding":      "gzip, deflate, br",
 		"accept-language":      "en-US,en-GB;q=0.9",
 		"authorization":        Token,
-		"content-length":       Lenght,
+		//"content-length":       Lenght,
 		"content-type":         "application/json",
 		"cookie":               Cookies,
 		"origin":               "https://discord.com",
