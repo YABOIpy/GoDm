@@ -11,4 +11,5 @@ joiner
 raider
 pinger
 checker
+dm-spammer
 
