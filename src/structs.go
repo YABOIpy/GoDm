@@ -149,7 +149,7 @@ var (
 		cfg.ProxySettings.Timeout,
 		false, 
 		"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9008 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"http://" + c.Config().Proxy
+		c.Config().Proxy
 	)
 	Cookies     = "__dcfduid=" + cookies().Dcfd + "; " + "__sdcfduid=" + cookies().Sdcfd + "; "
 	urls        = "https://discord.com/api/v9/users/@me/affinities/guilds"
