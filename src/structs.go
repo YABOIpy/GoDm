@@ -34,6 +34,7 @@ type Config struct {
 		Close   bool `json:"Close_DM"`
 	} `json:"Settings"`
 	Proxy         string        `json:"Proxy"`
+	Ja3           string        `json:"JA3"`
 	ProxySettings ProxySettings `json:"proxy_settings"`
 }
 
