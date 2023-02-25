@@ -13,6 +13,7 @@ import (
 var (
 	c = massdm.X()
 	z = massdm.T()
+	b = massdm.Z()
 )
 
 func MassDm(message string) {
@@ -38,7 +39,6 @@ func MassDm(message string) {
 
 				if c.Config().Settings.Close == true {
 					c.CloseDm(CID, Token[i], massdm.Cookies)
-				} else if c.Config().Settings.Close == false {
 				}
 				if c.Config().Settings.Block == true {
 					c.Block(ID, Token[i], massdm.Cookies)
@@ -93,6 +93,29 @@ func Join(invite string) {
 				c.WebSock(Token[i])
 			}
 			c.Joiner(Token[i], invite)
+		}(i)
+	}
+	wg.Wait()
+	fmt.Println("\u001B[39mGoing Back to menu...")
+	time.Sleep(3 * time.Second)
+	main()
+}
+
+func Leave(ID string) {
+
+	Token, err := c.ReadFile("tokens.txt")
+	c.Errs(err)
+
+	var wg sync.WaitGroup
+	wg.Add(len(Token))
+
+	for i := 0; i < len(Token); i++ {
+		go func(i int) {
+			defer wg.Done()
+			if c.Config().Settings.Websock == true {
+				c.WebSock(Token[i])
+			}
+			c.Leaver(Token[i], ID)
 		}(i)
 	}
 	wg.Wait()
@@ -172,11 +195,13 @@ func Raid(message string, ID string) {
 	wg.Wait()
 }
 
-func Scrape(Token string, ID string) {
-	if c.Config().Settings.Websock == true {
-		c.WebSock(Token)
+func Scrape(Token string, GID string, CID string) {
+	Is := massdm.Instance{Token: Token}
+	for {
+		Is.Connect(Token)
+		c.Scrape_ID(Is.Ws, Token, CID, GID, 0)
+		fmt.Println("scrapin")
 	}
-	c.Scrape_ID(Token, ID)
 	fmt.Println("\u001B[39mGoing Back to menu...")
 	time.Sleep(3 * time.Second)
 	main()
@@ -250,12 +275,14 @@ func main() {
 		fmt.Scanln(&ID)
 		Raid(msg, ID)
 	} else if choice == 8 {
-		var token, ID string
+		var token, GID, CID string
 		fmt.Print("	[Token]>: ")
 		fmt.Scanln(&token)
 		fmt.Print("	[ServerID]>: ")
-		fmt.Scanln(&ID)
-		Scrape(token, ID)
+		fmt.Scanln(&GID)
+		fmt.Print("	[ChannelID]>: ")
+		fmt.Scanln(&GID)
+		Scrape(token, GID, CID)
 	} else if choice == 9 {
 		Check()
 	} else if choice == 10 {
