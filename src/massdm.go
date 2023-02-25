@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"math/rand"
 	http "github.com/Danny-Dasilva/fhttp"
+	"io/ioutil"
+	"log"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -17,6 +17,7 @@ func (Xc *Config) Dm(ID string, Token string, Msg string, Cookies string) {
 	payload := map[string]string{
 		"content": Msg,
 	}
+
 	req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages",
 		bytes.NewBuffer(Xc.Marsh(payload)),
 	)
@@ -26,7 +27,6 @@ func (Xc *Config) Dm(ID string, Token string, Msg string, Cookies string) {
 		"accept-encoding":    "gzip, deflate, br",
 		"accept-language":    "en-US,en-GB;q=0.9",
 		"authorization":      Token,
-		"content-length":     strconv.Itoa(content(string(Xc.Marsh(payload))).Length),
 		"content-type":       "application/json",
 		"cookie":             Cookies,
 		"origin":             "https://discord.com",
@@ -88,7 +88,6 @@ func (Xc *Config) CloseDm(ID string, Token string, Cookies string) {
 
 func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 	payload := []byte("{\"recipients\":[\"" + strconv.Itoa(ID) + "\"]}")
-	//Lenght := strconv.Itoa(content(string(payload)).Length)
 	req, err := http.NewRequest("POST", "https://discord.com/api/v9/users/@me/channels",
 		bytes.NewBuffer(payload),
 	)
@@ -99,7 +98,6 @@ func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 		"accept-encoding":      "gzip, deflate, br",
 		"accept-language":      "en-US,en-GB;q=0.9",
 		"authorization":        Token,
-		//"content-length":       Lenght,
 		"content-type":         "application/json",
 		"cookie":               Cookies,
 		"origin":               "https://discord.com",
@@ -134,7 +132,6 @@ func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 		var data interface{}
 		json.Unmarshal(body, &data)
 		fmt.Print(data)
-
 	}
 	return flake.ID, err
 }
@@ -213,6 +210,43 @@ func (Xc *Config) Joiner(Token string, invite string) {
 	_ = err
 	if resp.StatusCode == 200 {
 		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Joined " + clr + "discord.gg/" + invite)
+	} else {
+		Xc.Decerr(*resp)
+	}
+}
+
+func (Xc *Config) Leaver(Token string, ID string) {
+	req, err := http.NewRequest("DELETE", "https://discord.com/api/v9/users/@me/guilds/"+ID+"",
+		bytes.NewBuffer(
+			Xc.Marsh(
+				map[string]string{"lurking": ""},
+			),
+		),
+	)
+	_ = err
+	for x, o := range map[string]string{
+		"accept":             "*/*",
+		"accept-encoding":    "gzip, deflate, br",
+		"accept-language":    "en-US,en-GB;q=0.9",
+		"authorization":      Token,
+		"content-type":       "application/json",
+		"cookie":             Cookies,
+		"origin":             "https://discord.com",
+		"referer":            "https://discord.com/channels/",
+		"sec-fetch-dest":     "empty",
+		"sec-fetch-mode":     "cors",
+		"sec-fetch-site":     "same-origin",
+		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
+		"x-debug-options":    "bugReporterEnabled",
+		"x-discord-locale":   "en-US",
+		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNjg2LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
+	} {
+		req.Header.Set(x, o)
+	}
+	resp, err := Client.Do(req)
+	_ = err
+	if resp.StatusCode == 204 {
+		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Left Server")
 	} else {
 		Xc.Decerr(*resp)
 	}
@@ -321,93 +355,58 @@ func (Xc *Checker) Check(token string) string {
 	return Xc.Token
 }
 
-func (Xc *Config) Scrape_ID(Token string, IDs string) {
-	// reqs, err := http.NewRequest("GET", "https://discord.com/api/guilds/"+IDs+"/channels",
-	// 	nil,
-	// )
-	// Xc.Errs(err)
-	// for x,o := range map[string]string{
-	// 	"accept": "*/*",
-	// 	"accept-encoding": "gzip, deflate, br",
-	// 	"accept-language": "en-US,en-GB;q=0.9",
-	// 	"authorization": Token,
-	// 	"content-type": "application/json",
-	// 	"cookie": Cookies,
-	// 	"origin": "https://discord.com",
-	// 	"referer": "https://discord.com/channels/",
-	// 	"sec-fetch-dest": "empty",
-	// 	"sec-fetch-mode": "cors",
-	// 	"sec-fetch-site": "same-origin",
-	// 	"user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-	// } {
-	// 	reqs.Header.Set(x,o)
-	// }
-
-	// resps, err := Client.Do(reqs)
-	// Xc.Errs(err)
-
-	var ids = []string{}
-	// var data1 ChannelData
-	// body, err := ReadBody(*resps)
-	// Xc.Errs(err)
-
-	// err = json.Unmarshal(body, &data1)
-	// Xc.Errs(err)
-	// fmt.Println(data1)
-	// if reqs.Response.StatusCode == http.StatusOK {
-	// 	for _, x := range data1 {
-	// 	   fmt.Println(x.ID)
-	// 	}
-	// }
-	req, err := http.NewRequest("GET", "https://discord.com/api/v9/channels/"+IDs+"/messages?limit=100",
-		nil,
-	)
-	Xc.Errs(err)
-	for x, o := range map[string]string{
-		"accept":          "*/*",
-		"accept-encoding": "gzip, deflate, br",
-		"accept-language": "en-US,en-GB;q=0.9",
-		"authorization":   Token,
-		"content-type":    "application/json",
-		"cookie":          Cookies,
-		"origin":          "https://discord.com",
-		"referer":         "https://discord.com/channels/",
-		"sec-fetch-dest":  "empty",
-		"sec-fetch-mode":  "cors",
-		"sec-fetch-site":  "same-origin",
-		"user-agent":      "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-	} {
-		req.Header.Set(x, o)
-	}
-
-	//var ids = []string{}
-	resp, ers := Client.Do(req)
-	_ = ers
-
-	if resp.StatusCode == 200 {
-		defer func(Body io.ReadCloser) {
-
-			err := Body.Close()
-			Xc.Errs(err)
-		}(resp.Body)
-
-		var data ChannelData
-		body, err := ReadBody(*resp)
-		Xc.Errs(err)
-
-		err = json.Unmarshal(body, &data)
-		Xc.Errs(err)
-		for _, x := range data {
-			if !contains(ids, x.Author.ID) {
-				ids = append(ids, x.Author.ID)
-
-			}
+func (Xc *Config) Scrape_ID(Ws *Socket, Token string, CID string, GID string, index int) {
+	if index == 0 {
+		payload := Data{
+			GuildId:    GID,
+			Typing:     true,
+			Threads:    true,
+			Activities: true,
+			Members:    []Member{},
+			Channels: map[string]interface{}{
+				CID: []interface{}{[2]int{0, 99}},
+			},
 		}
-	} else {
-		Xc.Decerr(*resp)
+		err := Ws.WriteJSONe(&Event{
+			Op:   14,
+			Data: payload,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-
-	Xc.Write_ID(ids)
+	var x []interface{}
+	if index == 0 {
+		x = []interface{}{[2]int{0, 99}}
+	} else if index == 1 {
+		x = []interface{}{[2]int{0, 99}, [2]int{100, 199}}
+	} else if index == 2 {
+		x = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{200, 299}}
+	} else {
+		x = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{index * 100, (index * 100) + 99}}
+	}
+	payload := Data{
+		GuildId: GID,
+		Channels: map[string]interface{}{
+			CID: x,
+		},
+	}
+	err := Ws.WriteJSONe(&Event{
+		Op:   14,
+		Data: payload,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(Ws)
+	var memberids []string
+	for _, member := range Ws.Members {
+		memberids = append(memberids, member.User.ID)
+		fmt.Println(memberids)
+	}
+}
+func (c *Socket) WriteJSONe(e *Event) error {
+	return c.Conn.WriteJSON(e)
 }
 
 func (Xc *Config) Write_ID(ids []string) {
@@ -453,13 +452,10 @@ func (Xc *Config) Raider(Token string, message string, ID string) {
 		_ = ers
 		if resp.StatusCode == 200 {
 			fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Sent Message")
-			continue
 		} else if resp.StatusCode == 429 {
 			fmt.Println("" + yel + "▏" + r + "(" + yel + "+" + r + ") RateLimit")
-			continue
 		} else {
 			fmt.Println("" + red + "▏" + r + "(" + red + "+" + r + ") Failed To Send")
-			continue
 		}
 	}
 }
@@ -483,7 +479,7 @@ func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) 
 				}),
 			),
 		)
-		_ = err
+		Xc.Errs(err)
 		for x, o := range map[string]string{
 			"accept":             "*/*",
 			"accept-encoding":    "gzip, deflate, br",
@@ -503,17 +499,17 @@ func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) 
 		} {
 			req.Header.Set(x, o)
 		}
+		fmt.Println(Token)
+
 		resp, ers := Client.Do(req)
 		Xc.Errs(ers)
 		if resp.StatusCode == 200 {
 			fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Sent Message")
-			continue
 		} else if resp.StatusCode == 429 {
 			fmt.Println("" + yel + "▏" + r + "(" + yel + "+" + r + ") RateLimit")
-			continue
 		} else {
+			Xc.Decerr(*resp)
 			fmt.Println("" + red + "▏" + r + "(" + red + "+" + r + ") Failed To Send")
-			continue
 		}
 	}
 }
