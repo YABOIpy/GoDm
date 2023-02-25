@@ -138,7 +138,6 @@ func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 
 func (Xc *Config) Block(ID int, Token string, Cookies string) {
 	p := map[string]string{"type": "2"}
-	Length := strconv.Itoa(content(string(Xc.Marsh(p))).Length)
 	req, err := http.NewRequest("PUT", "https://discord.com/api/v9/users/@me/relationships/"+strconv.Itoa(ID)+"",
 		bytes.NewBuffer(Xc.Marsh(p)),
 	)
@@ -149,7 +148,6 @@ func (Xc *Config) Block(ID int, Token string, Cookies string) {
 		"accept-encoding":    "gzip, deflate, br",
 		"accept-language":    "en-US,en-GB;q=0.9",
 		"authorization":      Token,
-		"content-length":     Length,
 		"content-type":       "application/json",
 		"cookie":             Cookies,
 		"origin":             "https://discord.com",
