@@ -152,6 +152,28 @@ func Check() {
 	main()
 }
 
+func Reac(link string) {
+	Token, err := c.ReadFile("tokens.txt")
+	c.Errs(err)
+
+	var wg sync.WaitGroup
+	wg.Add(len(Token))
+
+	for i := 0; i < len(Token); i++ {
+		go func(i int) {
+			defer wg.Done()
+			if c.Config().Settings.Websock == true {
+				c.WebSock(Token[i])
+			}
+			c.React(link)
+		}(i)
+	}
+	wg.Wait()
+	fmt.Println("\u001B[39mGoing Back to menu...")
+	time.Sleep(3 * time.Second)
+	main()
+}
+
 func Rules(invite string, ID string) {
 
 	Token, err := c.ReadFile("tokens.txt")
@@ -198,7 +220,7 @@ func Raid(message string, ID string) {
 func Scrape(Token string, GID string, CID string) {
 	Is := massdm.Instance{Token: Token}
 	for {
-		Is.Connect(Token)
+		//Is.Connect(Token)
 		c.Scrape_ID(Is.Ws, Token, CID, GID, 0)
 		fmt.Println("scrapin")
 	}
@@ -258,6 +280,10 @@ func main() {
 		fmt.Scanln(&invite)
 		Join(invite)
 	} else if choice == 5 {
+		var ID string
+		fmt.Print("	[ID]>: ")
+		fmt.Scanln(&ID)
+		Leave(ID)
 
 	} else if choice == 6 {
 		var invite, ID string

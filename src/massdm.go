@@ -86,6 +86,27 @@ func (Xc *Config) CloseDm(ID string, Token string, Cookies string) {
 
 }
 
+func (Xc *Config) React(link string) {
+	payload := map[string]string{}
+	req, err := http.NewRequest("POST",
+		link,
+		bytes.NewBuffer(
+			Xc.Marsh(payload),
+		),
+	)
+	Xc.Errs(err)
+	for x, o := range map[string]string{} {
+		req.Header.Set(x, o)
+	}
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	switch resp.StatusCode {
+	case 200:
+
+	}
+}
+
 func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 	payload := []byte("{\"recipients\":[\"" + strconv.Itoa(ID) + "\"]}")
 	req, err := http.NewRequest("POST", "https://discord.com/api/v9/users/@me/channels",
@@ -217,7 +238,7 @@ func (Xc *Config) Leaver(Token string, ID string) {
 	req, err := http.NewRequest("DELETE", "https://discord.com/api/v9/users/@me/guilds/"+ID+"",
 		bytes.NewBuffer(
 			Xc.Marsh(
-				map[string]string{"lurking": ""},
+				map[string]string{"lurking": "false"},
 			),
 		),
 	)
@@ -246,6 +267,9 @@ func (Xc *Config) Leaver(Token string, ID string) {
 	if resp.StatusCode == 204 {
 		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Left Server")
 	} else {
+		body, err := ioutil.ReadAll(resp.Body)
+		Xc.Errs(err)
+		fmt.Println(string(body))
 		Xc.Decerr(*resp)
 	}
 }
