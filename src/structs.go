@@ -1,8 +1,8 @@
 package massdm
 
 import (
-	_ "crypto/tls"
 	http "github.com/Danny-Dasilva/fhttp"
+	"github.com/gorilla/websocket"
 	goclient "massdm/client"
 	"time"
 )
@@ -20,6 +20,10 @@ type Checker struct {
 	Resp    bool
 	All     int
 }
+type Instance struct {
+	Token string
+	Ws    *Socket
+}
 
 type Config struct {
 	Headers map[string]string
@@ -33,8 +37,7 @@ type Config struct {
 		Block   bool `json:"Block_Usr"`
 		Close   bool `json:"Close_DM"`
 	} `json:"Settings"`
-	Proxy         string        `json:"Proxy"`
-	Ja3           string        `json:"JA3"`
+	Proxy         string        `json:"proxy"`
 	ProxySettings ProxySettings `json:"proxy_settings"`
 }
 
@@ -112,6 +115,123 @@ type WsPresence struct {
 	Afk        bool          `json:"afk"`
 }
 
+type Event struct {
+	Op        int    `json:"op"`
+	Data      Data   `json:"d,omitempty"`
+	Sequence  int    `json:"s,omitempty"`
+	EventName string `json:"t,omitempty"`
+}
+
+type Activity struct {
+	Name string `json:"name"`
+	Type int    `json:"type"`
+}
+
+type PresenceChange struct {
+	Since      int        `json:"since,omitempty"`
+	Activities []Activity `json:"activities"`
+	Status     string     `json:"status"`
+	Afk        bool       `json:"afk"`
+}
+
+type ClientState struct {
+	HighestLastMessageID     string `json:"highest_last_message_id,omitempty"`
+	ReadStateVersion         int    `json:"read_state_version,omitempty"`
+	UserGuildSettingsVersion int    `json:"user_guild_settings_version,omitempty"`
+}
+type Message struct {
+	Content   string `json:"content,omitempty"`
+	ChannelID string `json:"channel_id,omitempty"`
+	Author    User   `json:"author,omitempty"`
+	GuildID   string `json:"guild_id,omitempty"`
+	MessageId string `json:"id,omitempty"`
+	Flags     int    `json:"flags,omitempty"`
+}
+
+type Data struct {
+	Message
+	Identify
+	PresenceChange
+	ClientState       ClientState            `json:"client_state,omitempty"`
+	HeartbeatInterval int                    `json:"heartbeat_interval,omitempty"`
+	SessionID         string                 `json:"session_id,omitempty"`
+	Sequence          int                    `json:"seq,omitempty"` // For sending only
+	GuildId           interface{}            `json:"guild_id,omitempty"`
+	Channels          map[string]interface{} `json:"channels,omitempty"`
+	Ops               []Ops                  `json:"ops,omitempty"`
+	ChannelID         string                 `json:"channel_id,omitempty"`
+	Members           []Member               `json:"members,omitempty"`
+	Typing            bool                   `json:"typing,omitempty"`
+	Threads           bool                   `json:"threads,omitempty"`
+	Activities        bool                   `json:"activities,omitempty"`
+	ThreadMemberLists interface{}            `json:"thread_member_lists,omitempty"`
+	// Emoji React
+	UserID    string `json:"user_id,omitempty"`
+	MessageID string `json:"message_id,omitempty"`
+}
+
+type Ops struct {
+	Items []Userinfo  `json:"items,omitempty"`
+	Range interface{} `json:"range,omitempty"`
+	Op    string      `json:"op,omitempty"`
+}
+
+type Userinfo struct {
+	Member Member `json:"member,omitempty"`
+}
+
+type Identify struct {
+	Token        string      `json:"token,omitempty"`
+	Properties   XProperties `json:"properties,omitempty"`
+	Capabilities int         `json:"capabilities,omitempty"`
+	Compress     bool        `json:"compress,omitempty"`
+	Presence     Presence    `json:"presence,omitempty"`
+}
+
+type Presence struct {
+	Status     string   `json:"status,omitempty"`
+	Since      int      `json:"since,omitempty"`
+	Activities []string `json:"activities,omitempty"`
+	AFK        bool     `json:"afk,omitempty"`
+}
+
+type Socket struct {
+	Members      []Member
+	Token        string
+	AllMembers   []string
+	Messages     chan []byte
+	Conn         *websocket.Conn
+	sessionID    string
+	in           chan string
+	out          chan []byte
+	fatalHandler func(err error)
+	seq          int
+	closeChan    chan struct{}
+	Reactions    chan []byte
+}
+
+type User struct {
+	ID            string `json:"id"`
+	Username      string `json:"username"`
+	Discriminator string `json:"discriminator"`
+	Avatar        string `json:"avatar"`
+	Bot           bool   `json:"bot"`
+}
+
+type Member struct {
+	User                       User        `json:"user,omitempty"`
+	Roles                      []string    `json:"roles"`
+	PremiumSince               interface{} `json:"premium_since"`
+	Pending                    bool        `json:"pending"`
+	Nick                       string      `json:"nick"`
+	Mute                       bool        `json:"mute"`
+	JoinedAt                   time.Time   `json:"joined_at"`
+	Flags                      int         `json:"flags"`
+	Deaf                       bool        `json:"deaf"`
+	CommunicationDisabledUntil interface{} `json:"communication_disabled_until"`
+	Avatar                     interface{} `json:"avatar"`
+}
+
 type WsGH struct{}
 
 type WsClientState struct {
@@ -140,25 +260,26 @@ type XProperties struct {
 }
 
 var (
-	c           = X()
-	cfg         = Config{}
+	c         = X()
+	proxi     = c.Config().Proxy
+	cfg       = Config{}
 	Client, _ = goclient.NewClient(goclient.Browser{
-		JA3:       c.Config().Ja3,
+		JA3:       "771,4866-4867-4865-49199-49187-52393-49191-107-158-52392-49200-103-49196-49192-159-49188-49195-255,0-11-10-35-16-22-23-13-43-45-51-21,29-23-30-25-24,0-1-2",
 		UserAgent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
 		Cookies:   nil,
 	},
 		cfg.ProxySettings.Timeout,
-		false, 
+		false,
 		"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9008 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		c.Config().Proxy,
+		proxi,
 	)
-	Cookies     = "__dcfduid=" + cookies().Dcfd + "; " + "__sdcfduid=" + cookies().Sdcfd + "; "
-	urls        = "https://discord.com/api/v9/users/@me/affinities/guilds"
-	grn         = "\033[32m"
-	yel         = "\033[33m"
-	red         = "\033[31m"
-	clr         = "\033[36m"
-	r           = "\033[39m"
+	Cookies = "__dcfduid=" + cookies().Dcfd + "; " + "__sdcfduid=" + cookies().Sdcfd + "; "
+	urls    = "https://discord.com/api/v9/users/@me/affinities/guilds"
+	grn     = "\033[32m"
+	yel     = "\033[33m"
+	red     = "\033[31m"
+	clr     = "\033[36m"
+	r       = "\033[39m"
 
 	Logo = `
 	____` + clr + `_____` + r + `__` + clr + `____     ` + r + `____` + clr + `____` + r + `____` + clr + `__  ___
@@ -180,3 +301,8 @@ var (
 
 	Choice ` + clr + `>>:` + r + ` `
 )
+
+func Z() Socket {
+	x := Socket{}
+	return x
+}
