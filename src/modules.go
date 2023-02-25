@@ -118,7 +118,7 @@ func (Xc *Config) Decerr(resp http.Response) {
 	fmt.Println(data)
 }
 
-//gecko
+
 func contains(elems []string, v string) bool {
 	for _, s := range elems {
 		if v == s {
