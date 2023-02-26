@@ -37,6 +37,7 @@ type Config struct {
 		Block   bool `json:"Block_Usr"`
 		Close   bool `json:"Close_DM"`
 	} `json:"Settings"`
+	Ja3           string        `json:"JA3"`
 	Proxy         string        `json:"proxy"`
 	ProxySettings ProxySettings `json:"proxy_settings"`
 }
@@ -264,7 +265,7 @@ var (
 	proxi     = c.Config().Proxy
 	cfg       = Config{}
 	Client, _ = goclient.NewClient(goclient.Browser{
-		JA3:       "771,4866-4867-4865-49199-49187-52393-49191-107-158-52392-49200-103-49196-49192-159-49188-49195-255,0-11-10-35-16-22-23-13-43-45-51-21,29-23-30-25-24,0-1-2",
+		JA3:       c.Config().Ja3,
 		UserAgent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
 		Cookies:   nil,
 	},

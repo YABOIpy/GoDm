@@ -165,7 +165,7 @@ func Reac(link string) {
 			if c.Config().Settings.Websock == true {
 				c.WebSock(Token[i])
 			}
-			c.React(link)
+			c.React(Token[i], link)
 		}(i)
 	}
 	wg.Wait()
@@ -273,7 +273,10 @@ func main() {
 		msg := scn.Text()
 		Spam_Dm(ID, msg)
 	} else if choice == 3 {
-
+		var link string
+		fmt.Print("	[Link]>: ")
+		fmt.Scanln(&link)
+		Reac(link)
 	} else if choice == 4 {
 		var invite string
 		fmt.Print("	discord.gg/")
