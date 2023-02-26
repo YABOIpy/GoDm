@@ -88,7 +88,7 @@ func (Xc *Config) CloseDm(ID string, Token string, Cookies string) {
 
 func (Xc *Config) React(Token string, link string) {
 	payload := map[string]string{}
-	req, err := http.NewRequest("POST",
+	req, err := http.NewRequest("PUT",
 		link,
 		bytes.NewBuffer(
 			Xc.Marsh(payload),
@@ -96,22 +96,21 @@ func (Xc *Config) React(Token string, link string) {
 	)
 	Xc.Errs(err)
 	for x, o := range map[string]string{
-		"accept":               "*/*",
-		"accept-encoding":      "gzip, deflate, br",
-		"accept-language":      "en-US,en-GB;q=0.9",
-		"authorization":        Token,
-		"content-type":         "application/json",
-		"cookie":               Cookies,
-		"origin":               "https://discord.com",
-		"referer":              "https://discord.com/channels/",
-		"sec-fetch-dest":       "empty",
-		"sec-fetch-mode":       "cors",
-		"sec-fetch-site":       "same-origin",
-		"user-agent":           "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-context-properties": "e30=",
-		"x-debug-options":      "bugReporterEnabled",
-		"x-discord-locale":     "en-US",
-		"x-super-properties":   "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
+		"accept":             "*/*",
+		"accept-encoding":    "gzip, deflate, br",
+		"accept-language":    "en-US,en-GB;q=0.9",
+		"authorization":      Token,
+		"content-type":       "application/json",
+		"cookie":             Cookies,
+		"origin":             "https://discord.com",
+		"referer":            "https://discord.com/channels/",
+		"sec-fetch-dest":     "empty",
+		"sec-fetch-mode":     "cors",
+		"sec-fetch-site":     "same-origin",
+		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
+		"x-debug-options":    "bugReporterEnabled",
+		"x-discord-locale":   "en-US",
+		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
 	} {
 		req.Header.Set(x, o)
 	}
@@ -119,7 +118,11 @@ func (Xc *Config) React(Token string, link string) {
 	Xc.Errs(err)
 
 	switch resp.StatusCode {
-	case 200:
+	case 204:
+		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Added Emoji")
+	default:
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Add Emoji"+clr+"", "ERR |: "+r)
+		Xc.Decerr(*resp)
 
 	}
 }

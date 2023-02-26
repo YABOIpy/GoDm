@@ -11,9 +11,12 @@ import (
 	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	xhttp "net/http"
 	"os"
 	"os/exec"
+	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -109,6 +112,56 @@ func cookies() Config {
 	return Cookie
 }
 
+func (Xc *Config) GetCfBm() (string, error) {
+	r, _ := http.Post("https://discord.com/register", "application/json", nil)
+	defer r.Body.Close()
+	body, _ := ioutil.ReadAll(r.Body)
+	site := fmt.Sprintf(`https://discord.com/cdn-cgi/bm/cv/result?req_id=%s`, r)
+	d := strings.Split(string(body), ",m:'")[1]
+	data := strings.Split(d, "',s:")[0]
+	payload := fmt.Sprintf(
+		`
+        {
+            "m":"`+data+`",      
+            "results":["`+c.Dcfd+`","`+c.Sdcfd+`"],
+            "timing":`+string(((time.Now().Unix()*1000)-1420070400000)*4194304)+`,
+            "fp":
+                {
+                    "id":3,
+                    "e":{"r":[1920,1080],
+                    "ar":[1054,1920],
+                    "pr":1,
+                    "cd":24,
+                    "wb":true,
+                    "wp":false,
+                    "wn":false,
+                    "ch":false,
+                    "ws":false,
+                    "wd":false
+                }
+            }
+        }
+        `, data, 60+rand.Intn(60),
+	)
+	req, err := http.NewRequest("POST", site, strings.NewReader(payload))
+	Xc.Errs(err)
+
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+	defer resp.Body.Close()
+	if resp.Cookies() == nil {
+		fmt.Println("Failed To Get Cookies: NIL")
+	}
+	if len(resp.Cookies()) == 0 {
+		fmt.Println("Failed To Get Cookies: NIL")
+	}
+	var cookies string
+	for _, cookie := range resp.Cookies() {
+		cookies = cookies + cookie.Name + "=" + cookie.Value
+	}
+	return cookies, nil
+}
+
 func (Xc *Config) Decerr(resp http.Response) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -117,7 +170,6 @@ func (Xc *Config) Decerr(resp http.Response) {
 	json.Unmarshal(body, &data)
 	fmt.Println(data)
 }
-
 
 func contains(elems []string, v string) bool {
 	for _, s := range elems {
