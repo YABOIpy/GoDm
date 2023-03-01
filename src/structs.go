@@ -20,7 +20,7 @@ type Checker struct {
 	Resp    bool
 	All     int
 }
-type Instance struct {
+type Is struct {
 	Token string
 	Ws    *Socket
 }
@@ -37,14 +37,26 @@ type Config struct {
 		Block   bool `json:"Block_Usr"`
 		Close   bool `json:"Close_DM"`
 	} `json:"Settings"`
-	Ja3           string        `json:"JA3"`
-	Proxy         string        `json:"proxy"`
-	ProxySettings ProxySettings `json:"proxy_settings"`
-}
 
-type ProxySettings struct {
-	Proxy   string `json:"Proxy"`
-	Timeout int    `json:"timeout"`
+	Mode struct {
+		Network struct {
+			Redirect bool   `json:"Redirect"`
+			TimeOut  int    `json:"TimeOut"`
+			Ja3      string `json:"JA3"`
+			Proxy    string `json:"Proxy"`
+			Agent    string `json:"Agent"`
+		} `json:"Net"`
+		Discord struct {
+			CfbM bool `json:"CfBm"`
+		} `json:"Discord"`
+	} `json:"Modes"`
+
+	Con struct {
+		Solution  string
+		Tokenclr  string
+		ProxyMode string
+		Toks      int
+	}
 }
 
 type ChannelData []struct {
@@ -262,45 +274,24 @@ type XProperties struct {
 
 var (
 	c         = X()
-	proxi     = c.Config().Proxy
 	cfg       = Config{}
 	Client, _ = goclient.NewClient(goclient.Browser{
-		JA3:       c.Config().Ja3,
-		UserAgent: "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
+		JA3:       c.Config().Mode.Network.Ja3,
+		UserAgent: c.Config().Mode.Network.Agent,
 		Cookies:   nil,
 	},
-		cfg.ProxySettings.Timeout,
-		false,
-		"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9008 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		proxi,
+		c.Config().Mode.Network.TimeOut,
+		c.Config().Mode.Network.Redirect,
+		c.Config().Mode.Network.Agent,
+		"http://"+c.Config().Mode.Network.Proxy,
 	)
-	Cookies = "__dcfduid=" + cookies().Dcfd + "; " + "__sdcfduid=" + cookies().Sdcfd + "; "
+	Cookies = c.GetCookie()
 	urls    = "https://discord.com/api/v9/users/@me/affinities/guilds"
 	grn     = "\033[32m"
 	yel     = "\033[33m"
 	red     = "\033[31m"
 	clr     = "\033[36m"
 	r       = "\033[39m"
-
-	Logo = `
-	____` + clr + `_____` + r + `__` + clr + `____     ` + r + `____` + clr + `____` + r + `____` + clr + `__  ___
-	` + r + `__` + clr + `  ____/` + r + `_  ` + clr + `__ \    ` + r + `___` + clr + `  __ \` + r + `__` + clr + `   |/  /
-	` + r + `_ ` + clr + ` / __ ` + r + `_` + clr + `  / / /    ` + r + `__` + clr + `  / / /` + r + `_` + clr + `  /|_/ / 
-	` + clr + `/ /_/ / / /_/ /     ` + r + `_  ` + clr + `/_/ /` + r + `_` + clr + `  /  / /  
-	\____/  \____/      /_____/ /_/  /_/   
-    
-	[` + r + `Go Discord Mass Dm` + clr + `]			~` + r + `YABOI` + clr + `
-	[` + r + `1` + clr + `]` + r + ` Mass DM ` + clr + `		[` + r + `10` + clr + `]` + r + ` Mass Ping ` + clr + `
-	[` + r + `2` + clr + `]` + r + ` Dm Spam ` + clr + `		[` + r + `11` + clr + `]` + r + `	x ` + clr + `
-	[` + r + `3` + clr + `]` + r + ` React Verify ` + clr + `	[` + r + `12` + clr + `]` + r + `	x ` + clr + `
-	[` + r + `4` + clr + `]` + r + ` Joiner ` + clr + `		[` + r + `13` + clr + `]` + r + `	x ` + clr + `
-	[` + r + `5` + clr + `]` + r + ` Leaver ` + clr + `		[` + r + `14` + clr + `]` + r + `	x ` + clr + `
-	[` + r + `6` + clr + `]` + r + ` Accept Rules ` + clr + `	[` + r + `15` + clr + `]` + r + `	x ` + clr + `
-	[` + r + `7` + clr + `]` + r + ` Raid Channel ` + clr + `	[` + r + `16` + clr + `]` + r + `	x ` + clr + `
-	[` + r + `8` + clr + `]` + r + ` Scrape Users ` + clr + `	[` + r + `17` + clr + `]` + r + `	x ` + clr + `
-	[` + r + `9` + clr + `]` + r + ` Check Tokens ` + clr + `	[` + r + `18` + clr + `]` + r + `	x
-
-	Choice ` + clr + `>>:` + r + ` `
 )
 
 func Z() Socket {

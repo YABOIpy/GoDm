@@ -127,6 +127,7 @@ func (Xc *Config) React(Token string, link string) {
 	}
 }
 
+
 func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 	payload := []byte("{\"recipients\":[\"" + strconv.Itoa(ID) + "\"]}")
 	req, err := http.NewRequest("POST", "https://discord.com/api/v9/users/@me/channels",

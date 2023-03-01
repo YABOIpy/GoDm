@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/zenthangplus/goccm"
 )
 
 var (
@@ -47,9 +49,7 @@ func MassDm(message string) {
 		}(i)
 	}
 	wg.Wait()
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(5 * time.Second)
-	main()
+	Return()
 
 }
 
@@ -96,9 +96,7 @@ func Join(invite string) {
 		}(i)
 	}
 	wg.Wait()
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(3 * time.Second)
-	main()
+	Return()
 }
 
 func Leave(ID string) {
@@ -119,18 +117,24 @@ func Leave(ID string) {
 		}(i)
 	}
 	wg.Wait()
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(3 * time.Second)
-	main()
+	Return()
 }
 
 func Check() {
 	token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
-	var wg sync.WaitGroup
-	wg.Add(len(token))
+	f := [3]string{
+		"data/valid.txt",
+		"data/locked.txt",
+		"data/invalid.txt",
+	}
+	for i := 0; i < len(f); i++ {
+		os.Truncate(f[i], 0)
+	}
+	wg := goccm.New(300)
 	start := time.Now()
 	for i := 0; i < len(token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			z.Check(token[i])
@@ -144,12 +148,10 @@ func Check() {
 
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 	elapsed := time.Since(start)
 	fmt.Println("[\033[32m✓\033[39m] (TIME\033[39m):", elapsed.String()[:4]+"Ms", "\033[39m(\033[33mLOCKED\033[39m):", z.Locked, "(\033[31mINVALID\033[39m):", z.Invalid, "(\033[32mVALID\033[39m):", z.Valid, "(\u001b[34;1mTOTAL\033[39m):", z.All)
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(3 * time.Second)
-	main()
+	Return()
 }
 
 func Reac(link string) {
@@ -169,9 +171,7 @@ func Reac(link string) {
 		}(i)
 	}
 	wg.Wait()
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(3 * time.Second)
-	main()
+	Return()
 }
 
 func Rules(invite string, ID string) {
@@ -192,9 +192,7 @@ func Rules(invite string, ID string) {
 		}(i)
 	}
 	wg.Wait()
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(3 * time.Second)
-	main()
+	Return()
 }
 
 func Raid(message string, ID string) {
@@ -218,15 +216,13 @@ func Raid(message string, ID string) {
 }
 
 func Scrape(Token string, GID string, CID string) {
-	Is := massdm.Instance{Token: Token}
+	Is := massdm.Is{Token: Token}
 	for {
 		//Is.Connect(Token)
 		c.Scrape_ID(Is.Ws, Token, CID, GID, 0)
-		fmt.Println("scrapin")
+		fmt.Println("scraping...")
 	}
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(3 * time.Second)
-	main()
+	Return()
 }
 
 func Ping(message string, amount int, ID string) {
@@ -247,16 +243,15 @@ func Ping(message string, amount int, ID string) {
 		}(i)
 	}
 	wg.Wait()
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(3 * time.Second)
-	main()
+	Return()
 
 }
 
 func main() {
 	c.Cls()
 	scn := bufio.NewScanner(os.Stdin)
-	fmt.Print(massdm.Logo)
+	c.CheckConfig()
+	fmt.Print(c.Logo())
 	var choice int
 	fmt.Scanln(&choice)
 	if choice == 1 {
@@ -327,9 +322,18 @@ func main() {
 		fmt.Print("	[ChannelID]>: ")
 		fmt.Scanln(&ID)
 		Ping(msg, count, ID)
+	} else if choice == 11 {
+		c.CheckIP()
+
 	} else {
 		fmt.Println("[\u001B[31m~\u001B[39m]	Wrong Input")
 		time.Sleep(1 * time.Second)
 		main()
 	}
+}
+
+func Return() {
+	fmt.Println("\u001B[39mGoing Back to menu...")
+	time.Sleep(3 * time.Second)
+	main()
 }

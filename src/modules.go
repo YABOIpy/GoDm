@@ -15,6 +15,7 @@ import (
 	xhttp "net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -58,6 +59,33 @@ func ReadBody(resp http.Response) ([]byte, error) {
 	return body, nil
 }
 
+func (Xc *Config) CheckConfig() {
+	if strings.Count(Xc.Config().Mode.Network.Proxy, "") > 1 {
+		cfg.Con.ProxyMode = grn + "True"
+	} else {
+		cfg.Con.ProxyMode = red + "False"
+	}
+
+	T, err := Xc.ReadFile("tokens.txt")
+	Xc.Errs(err)
+
+	if len(T) >= 1 && len(T) < 100 {
+		cfg.Con.Solution = yel + strconv.Itoa(len(T))
+
+	} else if len(T) == 0 {
+		cfg.Con.Solution = red + strconv.Itoa(len(T))
+
+	} else if len(T) >= 100 {
+		cfg.Con.Tokenclr = grn
+		cfg.Con.Solution = cfg.Con.Tokenclr + strconv.Itoa(len(T))
+
+	} else {
+		cfg.Con.Tokenclr = grn
+		cfg.Con.Solution = cfg.Con.Tokenclr + strconv.Itoa(c.Con.Toks)
+	}
+
+}
+
 func (Xc *Config) Config() Config {
 	var config Config
 	conf, err := os.Open("config.json")
@@ -67,6 +95,10 @@ func (Xc *Config) Config() Config {
 	xp.Decode(&config)
 	return config
 
+}
+
+func (Xc *Config) GetCookie() string {
+	return "__dcfduid=" + cookies().Dcfd + "; " + "__sdcfduid=" + cookies().Sdcfd + "; "
 }
 
 func (Xc *Config) ReadFile(files string) ([]string, error) {
@@ -256,4 +288,27 @@ func (Xc *Config) WebSock(token string) {
 	_, _, _ = ws.ReadMessage()
 	fmt.Println("" + clr + "▏" + r + "(" + clr + "o" + r + ") Connected to " + clr + "Websocket" + r + "")
 	ws.Close()
+}
+
+func (Xc *Config) Logo() string {
+	text := `
+	____` + clr + `_____` + r + `__` + clr + `____     ` + r + `____` + clr + `____` + r + `____` + clr + `__  ___
+	` + r + `__` + clr + `  ____/` + r + `_  ` + clr + `__ \    ` + r + `___` + clr + `  __ \` + r + `__` + clr + `   |/  /
+	` + r + `_ ` + clr + ` / __ ` + r + `_` + clr + `  / / /    ` + r + `__` + clr + `  / / /` + r + `_` + clr + `  /|_/ / 
+	` + clr + `/ /_/ / / /_/ /     ` + r + `_  ` + clr + `/_/ /` + r + `_` + clr + `  /  / /  
+	\____/  \____/      /_____/ /_/  /_/   
+    
+	[` + r + `Proxy: ` + cfg.Con.ProxyMode + clr + `]   	[` + r + `Tokens: ` + cfg.Con.Solution + clr + `]	~` + r + `YABOI` + clr + `
+	[` + r + `1` + clr + `]` + r + ` Mass DM ` + clr + `		[` + r + `10` + clr + `]` + r + ` Mass Ping ` + clr + `
+	[` + r + `2` + clr + `]` + r + ` Dm Spam ` + clr + `		[` + r + `11` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `3` + clr + `]` + r + ` React Verify ` + clr + `	[` + r + `12` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `4` + clr + `]` + r + ` Joiner ` + clr + `		[` + r + `13` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `5` + clr + `]` + r + ` Leaver ` + clr + `		[` + r + `14` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `6` + clr + `]` + r + ` Accept Rules ` + clr + `	[` + r + `15` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `7` + clr + `]` + r + ` Raid Channel ` + clr + `	[` + r + `16` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `8` + clr + `]` + r + ` Scrape Users ` + clr + `	[` + r + `17` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `9` + clr + `]` + r + ` Check Tokens ` + clr + `	[` + r + `18` + clr + `]` + r + `	x
+
+	Choice ` + clr + `>>:` + r + ` `
+	return text
 }
