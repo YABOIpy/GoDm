@@ -21,9 +21,6 @@ import (
 	"unicode/utf8"
 )
 
-func (Xc *Config) BuildNum() {
-
-}
 
 func ReadBody(resp http.Response) ([]byte, error) {
 
