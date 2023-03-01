@@ -311,3 +311,4 @@ func (Xc *Config) Logo() string {
 
 	Choice ` + clr + `>>:` + r + ` `
 	return text
+}
