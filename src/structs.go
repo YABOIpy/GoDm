@@ -3,7 +3,6 @@ package massdm
 import (
 	http "github.com/Danny-Dasilva/fhttp"
 	"github.com/gorilla/websocket"
-	goclient "massdm/client"
 	"time"
 )
 
@@ -273,18 +272,8 @@ type XProperties struct {
 }
 
 var (
-	c         = X()
-	cfg       = Config{}
-	Client, _ = goclient.NewClient(goclient.Browser{
-		JA3:       c.Config().Mode.Network.Ja3,
-		UserAgent: c.Config().Mode.Network.Agent,
-		Cookies:   nil,
-	},
-		c.Config().Mode.Network.TimeOut,
-		c.Config().Mode.Network.Redirect,
-		c.Config().Mode.Network.Agent,
-		"http://"+c.Config().Mode.Network.Proxy,
-	)
+	c       = X()
+	cfg     = Config{}
 	Cookies = c.GetCookie()
 	urls    = "https://discord.com/api/v9/users/@me/affinities/guilds"
 	grn     = "\033[32m"
