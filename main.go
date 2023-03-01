@@ -322,8 +322,6 @@ func main() {
 		fmt.Print("	[ChannelID]>: ")
 		fmt.Scanln(&ID)
 		Ping(msg, count, ID)
-	} else if choice == 11 {
-		c.CheckIP()
 
 	} else {
 		fmt.Println("[\u001B[31m~\u001B[39m]	Wrong Input")
