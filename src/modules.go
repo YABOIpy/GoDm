@@ -144,7 +144,7 @@ func cookies() Config {
 	return Cookie
 }
 
-func (Xc *Config) GetCfBm() (string, error) {
+func (Xc *Config) CfBm() (string, error) {
 	r, _ := http.Post("https://discord.com/register", "application/json", nil)
 	defer r.Body.Close()
 	body, _ := ioutil.ReadAll(r.Body)
