@@ -5,6 +5,8 @@ coming soon star for updates!
 this will release soon the code is just being uploaded here
 the functions are still in development
 
+![image](https://user-images.githubusercontent.com/110062350/222306213-a9d43e89-1a1e-4315-ae02-5d562664d53e.png)
+
 
 these are working:
 joiner
