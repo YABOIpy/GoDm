@@ -49,7 +49,7 @@ Recommended Config:
 | ---  | ---  | ---         |
 | `CfBm` | HEADER | Discord Clourdflare Cookie 
 | `Service` | CAPTCHA | Captcha Service for Api Captcha solver
-| `Api_Key` | CAPTCHA | Captcha Service for Api Captcha solver
+| `Api_Key` | CAPTCHA | Api Key for the Captcha Service
 
 **Client**
 | Name | Type | Description | 
