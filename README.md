@@ -56,6 +56,10 @@ Recommended Config:
 | `CfBm` | HEADER | Discord Clourdflare Cookie 
 | `Service` | CAPTCHA | Captcha Service for Api Captcha solver
 | `Api_Key` | CAPTCHA | Api Key for the Captcha Service
+| `Ver` | CONFIG | GoDm Client Version
+| `AppID` | CONFIG | Discord Application ID 
+| `Presence` | CONFIG | Discord RPC Client
+
 
 **Client**
 | Name | Type | Description | 
