@@ -9,6 +9,7 @@ import (
 	http "github.com/Danny-Dasilva/fhttp"
 	"github.com/andybalholm/brotli"
 	"github.com/gorilla/websocket"
+	"github.com/hugolgst/rich-go/client"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -20,7 +21,6 @@ import (
 	"time"
 	"unicode/utf8"
 )
-
 
 func ReadBody(resp http.Response) ([]byte, error) {
 
@@ -57,14 +57,19 @@ func ReadBody(resp http.Response) ([]byte, error) {
 }
 
 func (Xc *Config) CheckConfig() {
+
+	T, err := Xc.ReadFile("tokens.txt")
+	Xc.Errs(err)
+
 	if strings.Count(Xc.Config().Mode.Network.Proxy, "") > 1 {
 		cfg.Con.ProxyMode = grn + "True"
 	} else {
 		cfg.Con.ProxyMode = red + "False"
 	}
 
-	T, err := Xc.ReadFile("tokens.txt")
-	Xc.Errs(err)
+	if Xc.Config().Mode.Discord.RPC == true {
+		Xc.Presence(len(T))
+	}
 
 	if len(T) >= 1 && len(T) < 100 {
 		cfg.Con.Solution = yel + strconv.Itoa(len(T))
@@ -148,6 +153,7 @@ func (Xc *Config) CfBm() (string, error) {
 	site := fmt.Sprintf(`https://discord.com/cdn-cgi/bm/cv/result?req_id=%s`, r)
 	d := strings.Split(string(body), ",m:'")[1]
 	data := strings.Split(d, "',s:")[0]
+
 	payload := fmt.Sprintf(
 		`
         {
@@ -200,6 +206,17 @@ func (Xc *Config) Decerr(resp http.Response) {
 	fmt.Println(data)
 }
 
+func (Xc *Config) Write_ID(ids []string) {
+	for _, v := range ids {
+		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") ID:", v)
+		f, err := os.OpenFile("ids.txt", os.O_RDWR|os.O_APPEND, 0660)
+		Xc.Errs(err)
+		defer f.Close()
+		_, ers := f.WriteString(v + "\n")
+		Xc.Errs(ers)
+	}
+}
+
 func contains(elems []string, v string) bool {
 	for _, s := range elems {
 		if v == s {
@@ -233,6 +250,94 @@ func (Xc *Config) Errs(err error) {
 	}
 }
 
+func (Xc *Config) Presence(Count int) {
+	err := client.Login(Xc.Config().Mode.Discord.AppID)
+	Xc.Errs(err)
+	client.SetActivity(client.Activity{
+		State:      "Running GoDm CLient",
+		Details:    "Go Mass DM | github.com/YABOIpy",
+		LargeImage: "b51b78ecc9e5711274931774e433b5e6",
+		LargeText:  "https://github.com/yaboipy",
+		SmallImage: "go_logo",
+		SmallText:  strconv.Itoa(Xc.Config().Mode.Discord.Version),
+		Party: &client.Party{
+			ID:         "-1",
+			Players:    Count,
+			MaxPlayers: Count,
+		},
+	})
+
+}
+
+func (Xc *Config) ScrapeSock(Token string) *Sock {
+
+	dialer := websocket.Dialer{}
+	ws, _, err := dialer.Dial("wss://gateway.discord.gg/?v=10&encoding=json", xhttp.Header{
+		"Origin":     []string{"https://discord.com"},
+		"User-Agent": []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"},
+	})
+	Xc.Errs(err)
+
+	wss := Sock{
+		Token:         Token,
+		Conn:          ws,
+		OfflineScrape: make(chan []byte),
+		Messages:      make(chan []byte),
+		Reactions:     make(chan []byte),
+	}
+
+	_, _, _ = ws.ReadMessage()
+	Payload, _ := json.Marshal(&PayloadWsLogin{
+		Op: 2,
+		D: WsD{
+			Token:        Token,
+			Capabilities: 125,
+			Properties: XProperties{
+				Os:                     "Windows",
+				Browser:                "Chrome",
+				Device:                 "",
+				SystemLocale:           "en-US",
+				BrowserUserAgent:       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
+				BrowserVersion:         "107.0.0.0",
+				OsVersion:              "10",
+				Referrer:               "https://www.google.com",
+				ReferringDomain:        "www.google.com",
+				ReferrerCurrent:        "",
+				ReferringDomainCurrent: "",
+				ReleaseChannel:         "stable",
+				ClientBuildNumber:      158183,
+				ClientEventSource:      nil,
+			},
+			Presence: WsPresence{
+				Status: Xc.Config().Mode.Discord.Status,
+				Since:  0,
+				Activities: PresenceData{
+					Name:  "GoDm | https://github.com/yaboipy",
+					Type:  4,
+					State: "GoDm V" + strconv.Itoa(Xc.Config().Mode.Discord.Version),
+					Emoji: "🌐",
+				},
+				Afk: false,
+			},
+			Compress: false,
+			ClientState: WsClientState{
+				GuildHashes:              WsGH{},
+				HighestLastMessageID:     "0",
+				ReadStateVersion:         0,
+				UserGuildSettingsVersion: -1,
+				UserSettingsVersion:      -1,
+			},
+		},
+	})
+	err = wss.Conn.WriteMessage(websocket.TextMessage, Payload)
+	if err != nil {
+		wss.Conn.Close()
+	}
+
+	wss.listen()
+	return &wss
+}
+
 func (Xc *Config) WebSock(token string) {
 
 	dialer := websocket.Dialer{}
@@ -241,6 +346,7 @@ func (Xc *Config) WebSock(token string) {
 		"User-Agent": []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"},
 	})
 	Xc.Errs(err)
+
 	_, _, _ = ws.ReadMessage()
 	Payload, _ := json.Marshal(&PayloadWsLogin{
 		Op: 2,
@@ -263,26 +369,32 @@ func (Xc *Config) WebSock(token string) {
 				ClientBuildNumber:      158183,
 				ClientEventSource:      nil,
 			},
-		},
-		Presence: WsPresence{
-			Status:     "online",
-			Since:      0,
-			Activities: nil,
-			Afk:        false,
-		},
-		Compress: false,
-		ClientState: WsClientState{
-			GuildHashes:              WsGH{},
-			HighestLastMessageID:     "0",
-			ReadStateVersion:         0,
-			UserGuildSettingsVersion: -1,
-			UserSettingsVersion:      -1,
+			Presence: WsPresence{
+				Status: Xc.Config().Mode.Discord.Status,
+				Since:  0,
+				Activities: PresenceData{
+					Name:  "GoDm | https://github.com/yaboipy",
+					Type:  4,
+					State: "GoDm V" + strconv.Itoa(Xc.Config().Mode.Discord.Version),
+					Emoji: "🌐",
+				},
+				Afk: false,
+			},
+			Compress: false,
+			ClientState: WsClientState{
+				GuildHashes:              WsGH{},
+				HighestLastMessageID:     "0",
+				ReadStateVersion:         0,
+				UserGuildSettingsVersion: -1,
+				UserSettingsVersion:      -1,
+			},
 		},
 	})
 	err = ws.WriteMessage(websocket.TextMessage, Payload)
 	Xc.Errs(err)
 	_, _, _ = ws.ReadMessage()
 	_, _, _ = ws.ReadMessage()
+
 	fmt.Println("" + clr + "▏" + r + "(" + clr + "o" + r + ") Connected to " + clr + "Websocket" + r + "")
 	ws.Close()
 }

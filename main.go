@@ -15,7 +15,6 @@ import (
 var (
 	c = massdm.X()
 	z = massdm.T()
-	b = massdm.Z()
 )
 
 func MassDm(message string) {
@@ -216,10 +215,9 @@ func Raid(message string, ID string) {
 }
 
 func Scrape(Token string, GID string, CID string) {
-	Is := massdm.Is{Token: Token}
 	for {
-		//Is.Connect(Token)
-		c.Scrape_ID(Is.Ws, Token, CID, GID, 0)
+		Ws := c.ScrapeSock(Token)
+		c.Scrape_ID(Ws, Token, CID, GID, 0)
 		fmt.Println("scraping...")
 	}
 	Return()
@@ -305,7 +303,7 @@ func main() {
 		fmt.Print("	[ServerID]>: ")
 		fmt.Scanln(&GID)
 		fmt.Print("	[ChannelID]>: ")
-		fmt.Scanln(&GID)
+		fmt.Scanln(&CID)
 		Scrape(token, GID, CID)
 	} else if choice == 9 {
 		Check()

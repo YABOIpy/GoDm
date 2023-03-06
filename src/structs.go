@@ -19,12 +19,9 @@ type Checker struct {
 	Resp    bool
 	All     int
 }
-type Is struct {
-	Token string
-	Ws    *Socket
-}
 
 type Config struct {
+	Ws      *Sock
 	Headers map[string]string
 	Dcfd    string
 	Sdcfd   string
@@ -46,7 +43,11 @@ type Config struct {
 			Agent    string `json:"Agent"`
 		} `json:"Net"`
 		Discord struct {
-			CfbM bool `json:"CfBm"`
+			CfbM    bool   `json:"CfBm"`
+			Version int    `json:"Ver"`
+			Status  string `json:"Status"`
+			AppID   string `json:"AppID"`
+			RPC     bool   `json:"Presence"`
 		} `json:"Discord"`
 	} `json:"Modes"`
 
@@ -58,38 +59,21 @@ type Config struct {
 	}
 }
 
-type ChannelData []struct {
-	ID               string      `json:"id"`
-	LastMessageID    string      `json:"last_message_id,omitempty"`
-	LastPinTimestamp time.Time   `json:"last_pin_timestamp,omitempty"`
-	Type             int         `json:"type"`
-	Name             string      `json:"name"`
-	Position         int         `json:"position"`
-	ParentID         string      `json:"parent_id"`
-	Topic            interface{} `json:"topic,omitempty"`
-	GuildID          string      `json:"guild_id"`
-	Nsfw             bool        `json:"nsfw"`
-	RateLimitPerUser int         `json:"rate_limit_per_user,omitempty"`
-	Banner           interface{} `json:"banner,omitempty"`
-	Bitrate          int         `json:"bitrate,omitempty"`
-	UserLimit        int         `json:"user_limit,omitempty"`
-	RtcRegion        interface{} `json:"rtc_region,omitempty"`
-
-	PermissionOverwrites []struct {
-		ID       string `json:"id"`
-		Type     string `json:"type"`
-		Allow    int    `json:"allow"`
-		Deny     int    `json:"deny"`
-		AllowNew string `json:"allow_new"`
-		DenyNew  string `json:"deny_new"`
-	} `json:"permission_overwrites"`
-	Author struct {
-		ID            string `json:"id"`
-		Username      string `json:"username"`
-		Avatar        string `json:"avatar"`
-		Discriminator string `json:"discriminator"`
-		PublicFlags   int    `json:"public_flags"`
-	} `json:"author"`
+type Sock struct {
+	Members       []Member
+	Token         string
+	OfflineScrape chan []byte
+	AllMembers    []string
+	Messages      chan []byte
+	Complete      bool
+	Conn          *websocket.Conn
+	sessionID     string
+	in            chan string
+	out           chan []byte
+	fatalHandler  func(err error)
+	seq           int
+	closeChan     chan struct{}
+	Reactions     chan []byte
 }
 
 type FormField struct {
@@ -107,24 +91,31 @@ type Bypass struct {
 }
 
 type PayloadWsLogin struct {
-	Op          int           `json:"op"`
-	D           WsD           `json:"d"`
-	Presence    WsPresence    `json:"presence"`
-	Compress    bool          `json:"compress"`
-	ClientState WsClientState `json:"client_state"`
+	Op int `json:"op"`
+	D  WsD `json:"d"`
 }
 
 type WsD struct {
-	Token        string      `json:"token"`
-	Capabilities int         `json:"capabilities"`
-	Properties   XProperties `json:"properties"`
+	Token        string        `json:"token"`
+	Capabilities int           `json:"capabilities"`
+	Properties   XProperties   `json:"properties"`
+	Presence     WsPresence    `json:"presence"`
+	Compress     bool          `json:"compress"`
+	ClientState  WsClientState `json:"client_state"`
 }
 
 type WsPresence struct {
-	Status     string        `json:"status"`
-	Since      int           `json:"since"`
-	Activities []interface{} `json:"activities"`
-	Afk        bool          `json:"afk"`
+	Status     string       `json:"status,omitempty"`
+	Since      int          `json:"since,omitempty"`
+	Activities PresenceData `json:"activities,omitempty"`
+	Afk        bool         `json:"afk,omitempty"`
+}
+
+type PresenceData struct {
+	Name  string `json:"name,omitempty"`
+	Type  int    `json:"type,omitempty"`
+	State string `json:"state,omitempty"`
+	Emoji string `json:"emoji,omitempty"`
 }
 
 type Event struct {
@@ -167,7 +158,6 @@ type Data struct {
 	ClientState       ClientState            `json:"client_state,omitempty"`
 	HeartbeatInterval int                    `json:"heartbeat_interval,omitempty"`
 	SessionID         string                 `json:"session_id,omitempty"`
-	Sequence          int                    `json:"seq,omitempty"` // For sending only
 	GuildId           interface{}            `json:"guild_id,omitempty"`
 	Channels          map[string]interface{} `json:"channels,omitempty"`
 	Ops               []Ops                  `json:"ops,omitempty"`
@@ -176,10 +166,8 @@ type Data struct {
 	Typing            bool                   `json:"typing,omitempty"`
 	Threads           bool                   `json:"threads,omitempty"`
 	Activities        bool                   `json:"activities,omitempty"`
-	ThreadMemberLists interface{}            `json:"thread_member_lists,omitempty"`
-	// Emoji React
-	UserID    string `json:"user_id,omitempty"`
-	MessageID string `json:"message_id,omitempty"`
+	UserID            string                 `json:"user_id,omitempty"`
+	MessageID         string                 `json:"message_id,omitempty"`
 }
 
 type Ops struct {
@@ -205,21 +193,6 @@ type Presence struct {
 	Since      int      `json:"since,omitempty"`
 	Activities []string `json:"activities,omitempty"`
 	AFK        bool     `json:"afk,omitempty"`
-}
-
-type Socket struct {
-	Members      []Member
-	Token        string
-	AllMembers   []string
-	Messages     chan []byte
-	Conn         *websocket.Conn
-	sessionID    string
-	in           chan string
-	out          chan []byte
-	fatalHandler func(err error)
-	seq          int
-	closeChan    chan struct{}
-	Reactions    chan []byte
 }
 
 type User struct {
@@ -282,8 +255,3 @@ var (
 	clr     = "\033[36m"
 	r       = "\033[39m"
 )
-
-func Z() Socket {
-	x := Socket{}
-	return x
-}

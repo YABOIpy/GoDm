@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -126,7 +126,6 @@ func (Xc *Config) React(Token string, link string) {
 
 	}
 }
-
 
 func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 	payload := []byte("{\"recipients\":[\"" + strconv.Itoa(ID) + "\"]}")
@@ -247,12 +246,21 @@ func (Xc *Config) Joiner(Token string, invite string) {
 		req.Header.Set(x, o)
 	}
 	resp, err := Client.Do(req)
-	_ = err
+	Xc.Errs(err)
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+
 	if resp.StatusCode == 200 {
 		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Joined " + clr + "discord.gg/" + invite)
+	} else if resp.StatusCode == 429 {
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" RateLimit", r)
+	} else if strings.Contains(string(body), "captcha_sitekey") {
+		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
 	} else {
 		Xc.Decerr(*resp)
 	}
+
 }
 
 func (Xc *Config) Leaver(Token string, ID string) {
@@ -398,7 +406,7 @@ func (Xc *Checker) Check(token string) string {
 	return Xc.Token
 }
 
-func (Xc *Config) Scrape_ID(Ws *Socket, Token string, CID string, GID string, index int) {
+func (Xc *Config) Scrape_ID(Ws *Sock, Token string, CID string, GID string, index int) {
 	if index == 0 {
 		payload := Data{
 			GuildId:    GID,
@@ -410,7 +418,7 @@ func (Xc *Config) Scrape_ID(Ws *Socket, Token string, CID string, GID string, in
 				CID: []interface{}{[2]int{0, 99}},
 			},
 		}
-		err := Ws.WriteJSONe(&Event{
+		err := Ws.Conn.WriteJSON(&Event{
 			Op:   14,
 			Data: payload,
 		})
@@ -434,32 +442,81 @@ func (Xc *Config) Scrape_ID(Ws *Socket, Token string, CID string, GID string, in
 			CID: x,
 		},
 	}
-	err := Ws.WriteJSONe(&Event{
+	err := Ws.Conn.WriteJSON(&Event{
 		Op:   14,
 		Data: payload,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(Ws)
+
+	_, resp, err := Ws.Conn.ReadMessage()
+
+	var data interface{}
+	json.Unmarshal(resp, &data)
+	fmt.Println(data)
+
+	//fmt.Println(string([]byte(Ws.Conn)))
 	var memberids []string
 	for _, member := range Ws.Members {
 		memberids = append(memberids, member.User.ID)
 		fmt.Println(memberids)
 	}
 }
-func (c *Socket) WriteJSONe(e *Event) error {
-	return c.Conn.WriteJSON(e)
-}
 
-func (Xc *Config) Write_ID(ids []string) {
-	for _, v := range ids {
-		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") ID:", v)
-		f, err := os.OpenFile("ids.txt", os.O_RDWR|os.O_APPEND, 0660)
-		Xc.Errs(err)
-		defer f.Close()
-		_, ers := f.WriteString(v + "\n")
-		Xc.Errs(ers)
+func (c *Sock) listen() {
+	for {
+		_, b, err := c.Conn.ReadMessage()
+		if err != nil {
+			c.closeChan <- struct{}{}
+			c.Conn.Close()
+			fmt.Println(err)
+			c.fatalHandler(err)
+			break
+		}
+		var body Event
+		if err := json.Unmarshal(b, &body); err != nil {
+			// All messages which don't decode properly are likely caused by the
+			// data object and are ignored for now.
+			continue
+		}
+
+		if body.EventName == "GUILD_MEMBERS_CHUNK" {
+			go func() {
+				c.OfflineScrape <- b
+			}()
+
+		}
+		if body.EventName == "MESSAGE_REACTION_ADD" {
+			go func() {
+				c.Reactions <- b
+			}()
+		}
+		if body.EventName == "GUILD_MEMBER_LIST_UPDATE" {
+			for i := 0; i < len(body.Data.Ops); i++ {
+				if len(body.Data.Ops[i].Items) == 0 && body.Data.Ops[i].Op == "SYNC" {
+					c.Complete = true
+				}
+			}
+
+			for i := 0; i < len(body.Data.Ops); i++ {
+				if body.Data.Ops[i].Op == "SYNC" {
+					for j := 0; j < len(body.Data.Ops[i].Items); j++ {
+						fmt.Println(c.Members)
+						c.Members = append(c.Members, body.Data.Ops[i].Items[j].Member)
+					}
+				}
+			}
+		}
+
+		switch body.Op {
+		default:
+			c.seq = body.Sequence
+			if body.Data.SessionID != "" {
+				c.sessionID = body.Data.SessionID
+			}
+
+		}
 	}
 }
 
@@ -514,11 +571,10 @@ func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) 
 			msg += "<@" + ping + ">"
 		}
 
-		Message += msg
 		req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages",
 			bytes.NewBuffer(
 				Xc.Marsh(map[string]string{
-					"content": Message,
+					"content": msg,
 				}),
 			),
 		)
