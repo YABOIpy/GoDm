@@ -65,6 +65,13 @@ Recommended Config:
 | `Presence` | CONFIG | Discord RPC Client
 
 
+**Config**
+| Name | Type | Description | 
+| ---  | ---  | ---         |
+| `Interval` | SSL/CONFIG | TLS Fingerprint can be left as is
+| `Errors` | ERRORS | Shows you the error from the request
+
+
 **Client**
 | Name | Type | Description | 
 | ---  | ---  | ---         |
