@@ -68,7 +68,7 @@ Recommended Config:
 **Config**
 | Name | Type | Description | 
 | ---  | ---  | ---         |
-| `Interval` | SSL/CONFIG | TLS Fingerprint can be left as is
+| `Interval` | CONFIG | The Time in Seconds before iterating 
 | `Errors` | ERRORS | Shows you the error from the request
 
 
