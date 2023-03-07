@@ -22,31 +22,17 @@ func (Xc *Config) Dm(ID string, Token string, Msg string, Cookies string) {
 		bytes.NewBuffer(Xc.Marsh(payload)),
 	)
 	Xc.Errs(err)
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             Cookies,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
+
+	Hd.Head_Dm(req, Token)
 	resp, err := Client.Do(req)
 	Xc.Errs(err)
+
 	if resp.StatusCode == 200 {
 		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Sent Message To:"+clr+"", ID)
 	} else {
-		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed Sent Message To:"+clr+"", ID)
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed Sent Message To:"+clr+"", ID,
+			Xc.Errmsg(*resp),
+		)
 	}
 }
 
@@ -56,32 +42,17 @@ func (Xc *Config) CloseDm(ID string, Token string, Cookies string) {
 		nil,
 	)
 	Xc.Errs(err)
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             Cookies,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
+
+	Hd.Head_CloseDm(req, Token)
 	resp, err := Client.Do(req)
 	Xc.Errs(err)
+
 	if resp.StatusCode == 200 {
 		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Closed Channel:"+clr+"", ID)
 	} else {
-		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Close Dm:"+clr+"", ID, "ERR |: ")
-		Xc.Decerr(*resp)
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Close Dm:"+clr+"", ID, "ERR |: ",
+			Xc.Errmsg(*resp),
+		)
 	}
 
 }
@@ -95,25 +66,8 @@ func (Xc *Config) React(Token string, link string) {
 		),
 	)
 	Xc.Errs(err)
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             Cookies,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
+
+	Hd.Head_React(req, Token)
 	resp, err := Client.Do(req)
 	Xc.Errs(err)
 
@@ -121,9 +75,9 @@ func (Xc *Config) React(Token string, link string) {
 	case 204:
 		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Added Emoji")
 	default:
-		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Add Emoji"+clr+"", "ERR |: "+r)
-		Xc.Decerr(*resp)
-
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Add Emoji"+clr+"", "ERR |: "+r,
+			Xc.Errmsg(*resp),
+		)
 	}
 }
 
@@ -134,28 +88,11 @@ func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 	)
 
 	Xc.Errs(err)
-	for x, o := range map[string]string{
-		"accept":               "*/*",
-		"accept-encoding":      "gzip, deflate, br",
-		"accept-language":      "en-US,en-GB;q=0.9",
-		"authorization":        Token,
-		"content-type":         "application/json",
-		"cookie":               Cookies,
-		"origin":               "https://discord.com",
-		"referer":              "https://discord.com/channels/",
-		"sec-fetch-dest":       "empty",
-		"sec-fetch-mode":       "cors",
-		"sec-fetch-site":       "same-origin",
-		"user-agent":           "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-context-properties": "e30=",
-		"x-debug-options":      "bugReporterEnabled",
-		"x-discord-locale":     "en-US",
-		"x-super-properties":   "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
-	var flake ChannelID
+
+	Hd.Head_Create(req, Token)
 	resp, err := Client.Do(req)
+
+	var flake ChannelID
 	if resp.StatusCode == 200 {
 		defer resp.Body.Close()
 		body, err := ReadBody(*resp)
@@ -167,12 +104,9 @@ func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 		return flake.ID, err
 
 	} else {
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		Xc.Errs(err)
-		var data interface{}
-		json.Unmarshal(body, &data)
-		fmt.Print(data)
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Create Channel:",
+			Xc.Errmsg(*resp),
+		)
 	}
 	return flake.ID, err
 }
@@ -184,32 +118,17 @@ func (Xc *Config) Block(ID int, Token string, Cookies string) {
 	)
 
 	Xc.Errs(err)
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             Cookies,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/@me/" + strconv.Itoa(ID) + "",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
+
+	Hd.Head_Block(req, Token, ID)
+
 	resp, err := Client.Do(req)
 	Xc.Errs(err)
 	if resp.StatusCode == 204 {
 		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Blocked User:"+clr+"", ID)
 	} else {
-		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Block:"+clr+"", ID, "ERR |: ")
-		Xc.Decerr(*resp)
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Block:"+clr+"", ID, "ERR |: ",
+			Xc.Errmsg(*resp),
+		)
 	}
 }
 
@@ -225,31 +144,15 @@ func (Xc *Config) Joiner(Token string, invite string) {
 			),
 		),
 	)
-	_ = err
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             Cookies,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNjg2LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
+	Xc.Errs(err)
+
+	Hd.Head_Joiner(req, Token)
 	resp, err := Client.Do(req)
 	Xc.Errs(err)
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	Xc.Errs(err)
 
 	if resp.StatusCode == 200 {
 		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Joined " + clr + "discord.gg/" + invite)
@@ -258,7 +161,10 @@ func (Xc *Config) Joiner(Token string, invite string) {
 	} else if strings.Contains(string(body), "captcha_sitekey") {
 		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
 	} else {
-		Xc.Decerr(*resp)
+
+		fmt.Println(""+yel+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite,
+			Xc.Errmsg(*resp),
+		)
 	}
 
 }
@@ -271,35 +177,18 @@ func (Xc *Config) Leaver(Token string, ID string) {
 			),
 		),
 	)
-	_ = err
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             Cookies,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNjg2LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
+	Xc.Errs(err)
+
+	Hd.Head_Leaver(req, Token)
+
 	resp, err := Client.Do(req)
 	_ = err
 	if resp.StatusCode == 204 {
 		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Left Server")
 	} else {
-		body, err := ioutil.ReadAll(resp.Body)
-		Xc.Errs(err)
-		fmt.Println(string(body))
-		Xc.Decerr(*resp)
+		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Leave "+clr+ID,
+			Xc.Errmsg(*resp),
+		)
 	}
 }
 
@@ -309,29 +198,12 @@ func (Xc *Config) Agree(Token string, invite string, ID string) {
 		nil,
 	)
 	Xc.Errs(err)
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             Cookies,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
 
-	resp, err := http.DefaultClient.Do(req)
+	Hd.Head_Agree(req, Token, 1)
+	resp, err := Client.Do(req)
 	Xc.Errs(err)
 
+	defer resp.Body.Close()
 	body, ers := ReadBody(*resp)
 	Xc.Errs(ers)
 
@@ -350,29 +222,16 @@ func (Xc *Config) Agree(Token string, invite string, ID string) {
 		),
 	)
 	Xc.Errs(er)
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             Cookies,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		reqs.Header.Set(x, o)
-	}
-	resps, es := http.DefaultClient.Do(reqs)
+
+	Hd.Head_Agree(reqs, Token, 0)
+	resps, es := Client.Do(reqs)
 	_ = es
 	if resps.StatusCode == 201 {
 		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Verified Token")
+	} else {
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed",
+			Xc.Errmsg(*resp),
+		)
 	}
 
 }
@@ -464,90 +323,19 @@ func (Xc *Config) Scrape_ID(Ws *Sock, Token string, CID string, GID string, inde
 	}
 }
 
-func (c *Sock) listen() {
-	for {
-		_, b, err := c.Conn.ReadMessage()
-		if err != nil {
-			c.closeChan <- struct{}{}
-			c.Conn.Close()
-			fmt.Println(err)
-			c.fatalHandler(err)
-			break
-		}
-		var body Event
-		if err := json.Unmarshal(b, &body); err != nil {
-			// All messages which don't decode properly are likely caused by the
-			// data object and are ignored for now.
-			continue
-		}
-
-		if body.EventName == "GUILD_MEMBERS_CHUNK" {
-			go func() {
-				c.OfflineScrape <- b
-			}()
-
-		}
-		if body.EventName == "MESSAGE_REACTION_ADD" {
-			go func() {
-				c.Reactions <- b
-			}()
-		}
-		if body.EventName == "GUILD_MEMBER_LIST_UPDATE" {
-			for i := 0; i < len(body.Data.Ops); i++ {
-				if len(body.Data.Ops[i].Items) == 0 && body.Data.Ops[i].Op == "SYNC" {
-					c.Complete = true
-				}
-			}
-
-			for i := 0; i < len(body.Data.Ops); i++ {
-				if body.Data.Ops[i].Op == "SYNC" {
-					for j := 0; j < len(body.Data.Ops[i].Items); j++ {
-						fmt.Println(c.Members)
-						c.Members = append(c.Members, body.Data.Ops[i].Items[j].Member)
-					}
-				}
-			}
-		}
-
-		switch body.Op {
-		default:
-			c.seq = body.Sequence
-			if body.Data.SessionID != "" {
-				c.sessionID = body.Data.SessionID
-			}
-
-		}
-	}
-}
-
 func (Xc *Config) Raider(Token string, message string, ID string) {
 	for true {
 
-		payload := map[string]string{
-			"content": message,
-		}
-		xp, _ := json.Marshal(payload)
-		req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages", bytes.NewBuffer(xp))
-		_ = err
-		for x, o := range map[string]string{
-			"accept":             "*/*",
-			"accept-encoding":    "gzip, deflate, br",
-			"accept-language":    "en-US,en-NL;q=0.9,en-GB;q=0.8",
-			"authorization":      Token,
-			"content-type":       "application/json",
-			"cookie":             Cookies,
-			"origin":             "https://discord.com",
-			"referer":            "https://discord.com/channels/@me/" + ID + "",
-			"sec-fetch-dest":     "empty",
-			"sec-fetch-mode":     "cors",
-			"sec-fetch-site":     "same-origin",
-			"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-			"x-debug-options":    "bugReporterEnabled",
-			"x-discord-locale":   "en-US",
-			"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-		} {
-			req.Header.Set(x, o)
-		}
+		req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages",
+			bytes.NewBuffer(
+				Xc.Marsh(map[string]string{
+					"content": message,
+				}),
+			),
+		)
+		Xc.Errs(err)
+
+		Hd.Head_Raider(req, Token, ID)
 		resp, ers := Client.Do(req)
 		_ = ers
 		if resp.StatusCode == 200 {
@@ -555,7 +343,9 @@ func (Xc *Config) Raider(Token string, message string, ID string) {
 		} else if resp.StatusCode == 429 {
 			fmt.Println("" + yel + "▏" + r + "(" + yel + "+" + r + ") RateLimit")
 		} else {
-			fmt.Println("" + red + "▏" + r + "(" + red + "+" + r + ") Failed To Send")
+			fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Send:",
+				Xc.Errmsg(*resp),
+			)
 		}
 	}
 }
@@ -579,27 +369,8 @@ func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) 
 			),
 		)
 		Xc.Errs(err)
-		for x, o := range map[string]string{
-			"accept":             "*/*",
-			"accept-encoding":    "gzip, deflate, br",
-			"accept-language":    "en-US,en-NL;q=0.9,en-GB;q=0.8",
-			"authorization":      Token,
-			"content-type":       "application/json",
-			"cookie":             Cookies,
-			"origin":             "https://discord.com",
-			"referer":            "https://discord.com/channels/@me/" + ID + "",
-			"sec-fetch-dest":     "empty",
-			"sec-fetch-mode":     "cors",
-			"sec-fetch-site":     "same-origin",
-			"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-			"x-debug-options":    "bugReporterEnabled",
-			"x-discord-locale":   "en-US",
-			"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-		} {
-			req.Header.Set(x, o)
-		}
-		fmt.Println(Token)
 
+		Hd.Head_MassPing(req, Token, ID)
 		resp, ers := Client.Do(req)
 		Xc.Errs(ers)
 		if resp.StatusCode == 200 {
@@ -607,8 +378,9 @@ func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) 
 		} else if resp.StatusCode == 429 {
 			fmt.Println("" + yel + "▏" + r + "(" + yel + "+" + r + ") RateLimit")
 		} else {
-			Xc.Decerr(*resp)
-			fmt.Println("" + red + "▏" + r + "(" + red + "+" + r + ") Failed To Send")
+			fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Send:",
+				Xc.Errmsg(*resp),
+			)
 		}
 	}
 }

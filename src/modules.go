@@ -56,6 +56,19 @@ func ReadBody(resp http.Response) ([]byte, error) {
 	return body, nil
 }
 
+func (Xc *Config) Errmsg(response http.Response) (errmsg string) {
+	body, _ := ReadBody(response)
+
+	if cfg.Con.Errors {
+		errmsg = string(body)
+	} else {
+		return ""
+	}
+
+	return errmsg
+
+}
+
 func (Xc *Config) CheckConfig() {
 
 	T, err := Xc.ReadFile("tokens.txt")
@@ -67,8 +80,12 @@ func (Xc *Config) CheckConfig() {
 		cfg.Con.ProxyMode = red + "False"
 	}
 
-	if Xc.Config().Mode.Discord.RPC == true {
+	if Xc.Config().Mode.Discord.RPC {
 		Xc.Presence(len(T))
+	}
+
+	if Xc.Config().Mode.Configs.Errormsg {
+		cfg.Con.Errors = true
 	}
 
 	if len(T) >= 1 && len(T) < 100 {
@@ -266,7 +283,6 @@ func (Xc *Config) Presence(Count int) {
 			MaxPlayers: Count,
 		},
 	})
-
 }
 
 func (Xc *Config) ScrapeSock(Token string) *Sock {
@@ -274,16 +290,15 @@ func (Xc *Config) ScrapeSock(Token string) *Sock {
 	dialer := websocket.Dialer{}
 	ws, _, err := dialer.Dial("wss://gateway.discord.gg/?v=10&encoding=json", xhttp.Header{
 		"Origin":     []string{"https://discord.com"},
-		"User-Agent": []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"},
+		"User-Agent": []string{Xc.Config().Mode.Network.Agent},
 	})
 	Xc.Errs(err)
 
 	wss := Sock{
-		Token:         Token,
-		Conn:          ws,
-		OfflineScrape: make(chan []byte),
-		Messages:      make(chan []byte),
-		Reactions:     make(chan []byte),
+		Token:     Token,
+		Conn:      ws,
+		Messages:  make(chan []byte),
+		Reactions: make(chan []byte),
 	}
 
 	_, _, _ = ws.ReadMessage()
@@ -312,6 +327,10 @@ func (Xc *Config) ScrapeSock(Token string) *Sock {
 				Status: Xc.Config().Mode.Discord.Status,
 				Since:  0,
 				Activities: PresenceData{
+					Game: Gamedata{
+						Name: "deezer",
+						Type: 2,
+					},
 					Name:  "GoDm | https://github.com/yaboipy",
 					Type:  4,
 					State: "GoDm V" + strconv.Itoa(Xc.Config().Mode.Discord.Version),
@@ -329,12 +348,12 @@ func (Xc *Config) ScrapeSock(Token string) *Sock {
 			},
 		},
 	})
+
 	err = wss.Conn.WriteMessage(websocket.TextMessage, Payload)
 	if err != nil {
 		wss.Conn.Close()
 	}
 
-	wss.listen()
 	return &wss
 }
 
@@ -343,7 +362,7 @@ func (Xc *Config) WebSock(token string) {
 	dialer := websocket.Dialer{}
 	ws, _, err := dialer.Dial("wss://gateway.discord.gg/?encoding=json&v=9&compress=zlib-stream", xhttp.Header{
 		"Origin":     []string{"https://discord.com"},
-		"User-Agent": []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"},
+		"User-Agent": []string{Xc.Config().Mode.Network.Agent},
 	})
 	Xc.Errs(err)
 
@@ -373,6 +392,10 @@ func (Xc *Config) WebSock(token string) {
 				Status: Xc.Config().Mode.Discord.Status,
 				Since:  0,
 				Activities: PresenceData{
+					Game: Gamedata{
+						Name: "deezer",
+						Type: 2,
+					},
 					Name:  "GoDm | https://github.com/yaboipy",
 					Type:  4,
 					State: "GoDm V" + strconv.Itoa(Xc.Config().Mode.Discord.Version),
@@ -390,6 +413,7 @@ func (Xc *Config) WebSock(token string) {
 			},
 		},
 	})
+
 	err = ws.WriteMessage(websocket.TextMessage, Payload)
 	Xc.Errs(err)
 	_, _, _ = ws.ReadMessage()

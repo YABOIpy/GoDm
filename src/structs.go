@@ -49,31 +49,34 @@ type Config struct {
 			AppID   string `json:"AppID"`
 			RPC     bool   `json:"Presence"`
 		} `json:"Discord"`
+		Configs struct {
+			Interval int  `json:"Interval"`
+			Errormsg bool `json:"Errors"`
+		} `json:"Config"`
 	} `json:"Modes"`
 
 	Con struct {
 		Solution  string
 		Tokenclr  string
 		ProxyMode string
+		Errors    bool
 		Toks      int
 	}
 }
 
 type Sock struct {
-	Members       []Member
-	Token         string
-	OfflineScrape chan []byte
-	AllMembers    []string
-	Messages      chan []byte
-	Complete      bool
-	Conn          *websocket.Conn
-	sessionID     string
-	in            chan string
-	out           chan []byte
-	fatalHandler  func(err error)
-	seq           int
-	closeChan     chan struct{}
-	Reactions     chan []byte
+	Members    []Member
+	Token      string
+	AllMembers []string
+	Messages   chan []byte
+	Complete   bool
+	Conn       *websocket.Conn
+	sessionID  string
+	in         chan string
+	out        chan []byte
+	seq        int
+	closeChan  chan struct{}
+	Reactions  chan []byte
 }
 
 type FormField struct {
@@ -112,10 +115,15 @@ type WsPresence struct {
 }
 
 type PresenceData struct {
-	Name  string `json:"name,omitempty"`
-	Type  int    `json:"type,omitempty"`
-	State string `json:"state,omitempty"`
-	Emoji string `json:"emoji,omitempty"`
+	Name  string   `json:"name,omitempty"`
+	Type  int      `json:"type,omitempty"`
+	State string   `json:"state,omitempty"`
+	Emoji string   `json:"emoji,omitempty"`
+	Game  Gamedata `json:"game,omitempty"`
+}
+type Gamedata struct {
+	Name string `json:"name,omitempty"`
+	Type int    `json:"type,omitempty"`
 }
 
 type Event struct {
@@ -218,6 +226,7 @@ type Member struct {
 }
 
 type WsGH struct{}
+type Header struct{}
 
 type WsClientState struct {
 	GuildHashes              WsGH   `json:"guild_hashes"`
@@ -246,6 +255,7 @@ type XProperties struct {
 
 var (
 	c       = X()
+	Hd      = Header{}
 	cfg     = Config{}
 	Cookies = c.GetCookie()
 	urls    = "https://discord.com/api/v9/users/@me/affinities/guilds"
