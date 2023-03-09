@@ -355,7 +355,7 @@ func (Xc *Config) WebSock(token string) {
 					},
 					Name:  "GoDm | https://github.com/yaboipy",
 					Type:  4,
-					State: "GoDm V" + strconv.Itoa(Xc.Config().Mode.Discord.Version),
+					State: "GoDm V" + fmt.Sprint(Xc.Config().Mode.Discord.Version),
 					Emoji: "🌐",
 				},
 				Afk: false,
