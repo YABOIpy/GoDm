@@ -12,6 +12,7 @@ import (
 	"github.com/hugolgst/rich-go/client"
 	"io/ioutil"
 	"log"
+	"massdm/scraper"
 	"math/rand"
 	xhttp "net/http"
 	"os"
@@ -81,7 +82,9 @@ func (Xc *Config) CheckConfig() {
 	}
 
 	if Xc.Config().Mode.Discord.RPC {
-		Xc.Presence(len(T))
+		go func() {
+			Xc.Presence(len(T))
+		}()
 	}
 
 	if Xc.Config().Mode.Configs.Errormsg {
@@ -142,6 +145,7 @@ func (Xc *Config) WriteFile(files string, item string) {
 
 func cookies() Config {
 	Xc := Config{}
+
 	req, err := http.NewRequest("GET", "https://discord.com", nil)
 	Xc.Errs(err)
 	resp, er := Client.Do(req)
@@ -248,6 +252,11 @@ func (Xc *Config) Marsh(payload map[string]string) []byte {
 	return x
 }
 
+func (Xc *Config) Marsh_btn(data map[string]interface{}) []byte {
+	x, _ := json.Marshal(data)
+	return x
+}
+
 func content(payload string) Config {
 	content := Config{}
 	amt := utf8.RuneCountInString(payload)
@@ -268,15 +277,25 @@ func (Xc *Config) Errs(err error) {
 }
 
 func (Xc *Config) Presence(Count int) {
+	now := time.Now()
 	err := client.Login(Xc.Config().Mode.Discord.AppID)
 	Xc.Errs(err)
 	client.SetActivity(client.Activity{
-		State:      "Running GoDm CLient",
+		State:      "Bots Loaded:",
 		Details:    "Go Mass DM | github.com/YABOIpy",
 		LargeImage: "b51b78ecc9e5711274931774e433b5e6",
 		LargeText:  "https://github.com/yaboipy",
-		SmallImage: "go_logo",
-		SmallText:  strconv.Itoa(Xc.Config().Mode.Discord.Version),
+		SmallImage: "go-logo",
+		SmallText:  "Ver " + fmt.Sprint(Xc.Config().Mode.Discord.Version),
+		Buttons: []*client.Button{
+			&client.Button{
+				Label: "Go To Page",
+				Url:   "https://github.com/yaboipy/go-massdm",
+			},
+		},
+		Timestamps: &client.Timestamps{
+			Start: &now,
+		},
 		Party: &client.Party{
 			ID:         "-1",
 			Players:    Count,
@@ -285,76 +304,11 @@ func (Xc *Config) Presence(Count int) {
 	})
 }
 
-func (Xc *Config) ScrapeSock(Token string) *Sock {
+func (Xc *Config) Socket(Token string) *Scraper.WsResp {
+	c := Scraper.X()
+	x := c.Connect(Token)
 
-	dialer := websocket.Dialer{}
-	ws, _, err := dialer.Dial("wss://gateway.discord.gg/?v=10&encoding=json", xhttp.Header{
-		"Origin":     []string{"https://discord.com"},
-		"User-Agent": []string{Xc.Config().Mode.Network.Agent},
-	})
-	Xc.Errs(err)
-
-	wss := Sock{
-		Token:     Token,
-		Conn:      ws,
-		Messages:  make(chan []byte),
-		Reactions: make(chan []byte),
-	}
-
-	_, _, _ = ws.ReadMessage()
-	Payload, _ := json.Marshal(&PayloadWsLogin{
-		Op: 2,
-		D: WsD{
-			Token:        Token,
-			Capabilities: 125,
-			Properties: XProperties{
-				Os:                     "Windows",
-				Browser:                "Chrome",
-				Device:                 "",
-				SystemLocale:           "en-US",
-				BrowserUserAgent:       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
-				BrowserVersion:         "107.0.0.0",
-				OsVersion:              "10",
-				Referrer:               "https://www.google.com",
-				ReferringDomain:        "www.google.com",
-				ReferrerCurrent:        "",
-				ReferringDomainCurrent: "",
-				ReleaseChannel:         "stable",
-				ClientBuildNumber:      158183,
-				ClientEventSource:      nil,
-			},
-			Presence: WsPresence{
-				Status: Xc.Config().Mode.Discord.Status,
-				Since:  0,
-				Activities: PresenceData{
-					Game: Gamedata{
-						Name: "deezer",
-						Type: 2,
-					},
-					Name:  "GoDm | https://github.com/yaboipy",
-					Type:  4,
-					State: "GoDm V" + strconv.Itoa(Xc.Config().Mode.Discord.Version),
-					Emoji: "🌐",
-				},
-				Afk: false,
-			},
-			Compress: false,
-			ClientState: WsClientState{
-				GuildHashes:              WsGH{},
-				HighestLastMessageID:     "0",
-				ReadStateVersion:         0,
-				UserGuildSettingsVersion: -1,
-				UserSettingsVersion:      -1,
-			},
-		},
-	})
-
-	err = wss.Conn.WriteMessage(websocket.TextMessage, Payload)
-	if err != nil {
-		wss.Conn.Close()
-	}
-
-	return &wss
+	return x
 }
 
 func (Xc *Config) WebSock(token string) {
