@@ -280,6 +280,9 @@ func (Xc *Config) Presence(Count int) {
 	now := time.Now()
 	err := client.Login(Xc.Config().Mode.Discord.AppID)
 	Xc.Errs(err)
+	if Count == 0 {
+		Count += 1
+	}
 	client.SetActivity(client.Activity{
 		State:      "Bots Loaded:",
 		Details:    "Go Mass DM | github.com/YABOIpy",
