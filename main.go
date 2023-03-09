@@ -24,10 +24,10 @@ func MassDm(message string) {
 	ids, err := c.ReadFile("ids.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(ids))
+	wg := goccm.New(300)
 
 	for i := 0; i < len(Token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			if c.Config().Settings.Websock == true {
@@ -47,7 +47,7 @@ func MassDm(message string) {
 			}
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 	Return()
 
 }
@@ -81,21 +81,32 @@ func Join(invite string) {
 
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
-
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
-
-	for i := 0; i < len(Token); i++ {
-		go func(i int) {
-			defer wg.Done()
+	interval := c.Config().Mode.Configs.Interval
+	if interval > 0 {
+		for i := 0; i < len(Token); i++ {
+			time.Sleep(time.Duration(interval) * time.Second)
 			if c.Config().Settings.Websock == true {
 				c.WebSock(Token[i])
 			}
 			c.Joiner(Token[i], invite)
-		}(i)
+
+		}
+		Return()
+	} else {
+		wg := goccm.New(300)
+		for i := 0; i < len(Token); i++ {
+			wg.Wait()
+			go func(i int) {
+				defer wg.Done()
+				if c.Config().Settings.Websock == true {
+					c.WebSock(Token[i])
+				}
+				c.Joiner(Token[i], invite)
+			}(i)
+		}
+		wg.WaitAllDone()
+		Return()
 	}
-	wg.Wait()
-	Return()
 }
 
 func Leave(ID string) {
@@ -216,8 +227,7 @@ func Raid(message string, ID string) {
 
 func Scrape(Token string, GID string, CID string) {
 	for {
-		Ws := c.ScrapeSock(Token)
-		c.Scrape_ID(Ws, Token, CID, GID, 0)
+		//c.Scrape(Token)
 		fmt.Println("scraping...")
 	}
 	Return()
@@ -243,6 +253,32 @@ func Ping(message string, amount int, ID string) {
 	wg.Wait()
 	Return()
 
+}
+
+func Click(GID string, CID string, MID string, BotID string, Type int, Comp int, Text string) {
+	Token, err := c.ReadFile("tokens.txt")
+	c.Errs(err)
+
+	var wg sync.WaitGroup
+	wg.Add(len(Token))
+
+	x, _ := strconv.Atoi(strconv.Itoa(Type))
+	s, _ := strconv.Atoi(strconv.Itoa(Comp))
+	if Type == x {
+		Type = 3
+	}
+	if Comp == s {
+		Comp = 2
+	}
+	for i := 0; i < len(Token); i++ {
+		go func(i int) {
+			defer wg.Done()
+			c.Buttons(Token[i], GID, CID, MID, BotID, Type, Comp, Text)
+		}(i)
+	}
+	wg.Wait()
+
+	Return()
 }
 
 func main() {
@@ -320,6 +356,25 @@ func main() {
 		fmt.Print("	[ChannelID]>: ")
 		fmt.Scanln(&ID)
 		Ping(msg, count, ID)
+	} else if choice == 11 {
+		var GID, CID, MID, BotID, Text string
+		var Type, Comp int
+		fmt.Print("	[ServerID]>: ")
+		fmt.Scanln(&GID)
+		fmt.Print("	[ChannelID]>: ")
+		fmt.Scanln(&CID)
+		fmt.Print("	[MessageID]>: ")
+		fmt.Scanln(&MID)
+		fmt.Print("	[BOT UserID]>: ")
+		fmt.Scanln(&BotID)
+		fmt.Print("	[Button Name]>: ")
+		fmt.Scanln(&Text)
+		fmt.Println("	\u001B[36mLeave Empty For Defualts\u001B[39m")
+		fmt.Print("	[Button type INT]>: ")
+		fmt.Scanln(&Type)
+		fmt.Print("	[Component type INT]>: ")
+		fmt.Scanln(&Comp)
+		Click(GID, CID, MID, BotID, Type, Comp, Text)
 
 	} else {
 		fmt.Println("[\u001B[31m~\u001B[39m]	Wrong Input")

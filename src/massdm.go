@@ -6,7 +6,6 @@ import (
 	"fmt"
 	http "github.com/Danny-Dasilva/fhttp"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -265,62 +264,45 @@ func (Xc *Checker) Check(token string) string {
 	return Xc.Token
 }
 
-func (Xc *Config) Scrape_ID(Ws *Sock, Token string, CID string, GID string, index int) {
-	if index == 0 {
-		payload := Data{
-			GuildId:    GID,
-			Typing:     true,
-			Threads:    true,
-			Activities: true,
-			Members:    []Member{},
-			Channels: map[string]interface{}{
-				CID: []interface{}{[2]int{0, 99}},
-			},
-		}
-		err := Ws.Conn.WriteJSON(&Event{
-			Op:   14,
-			Data: payload,
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	var x []interface{}
-	if index == 0 {
-		x = []interface{}{[2]int{0, 99}}
-	} else if index == 1 {
-		x = []interface{}{[2]int{0, 99}, [2]int{100, 199}}
-	} else if index == 2 {
-		x = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{200, 299}}
+func (Xc *Config) Buttons(Token string, GID string, CID string, MID string, BotID string, Type int, Comp int, Text string) {
+
+	req, err := http.NewRequest("POST",
+		"https://discord.com/api/v9/interactions",
+		strings.NewReader(
+			string(
+				Xc.Marsh_btn(
+					map[string]interface{}{
+						"application_id": BotID,
+						"channel_id":     CID,
+						"data": map[string]interface{}{
+							"component_type": Comp,
+							"custom_id":      Text,
+						},
+						"guild_id":      GID,
+						"message_flags": 0,
+						"message_id":    MID,
+						"type":          Type,
+						"session_id":    Xc.Socket(Token).Data.SessionID,
+					},
+				),
+			),
+		),
+	)
+
+	Xc.Errs(err)
+
+	Hd.Head_Button(req, Token, GID, CID)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	if resp.StatusCode == 204 {
+		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Clicked Button ")
+	} else if resp.StatusCode == 429 {
+		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Click Button "+yel+" RateLimit", r)
 	} else {
-		x = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{index * 100, (index * 100) + 99}}
-	}
-	payload := Data{
-		GuildId: GID,
-		Channels: map[string]interface{}{
-			CID: x,
-		},
-	}
-	err := Ws.Conn.WriteJSON(&Event{
-		Op:   14,
-		Data: payload,
-	})
-	if err != nil {
-		log.Fatal(err)
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Click Button | Err: ", Xc.Errmsg(*resp))
 	}
 
-	_, resp, err := Ws.Conn.ReadMessage()
-
-	var data interface{}
-	json.Unmarshal(resp, &data)
-	fmt.Println(data)
-
-	//fmt.Println(string([]byte(Ws.Conn)))
-	var memberids []string
-	for _, member := range Ws.Members {
-		memberids = append(memberids, member.User.ID)
-		fmt.Println(memberids)
-	}
 }
 
 func (Xc *Config) Raider(Token string, message string, ID string) {
