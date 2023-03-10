@@ -16,6 +16,10 @@ ERROR:                                               FIX:
 ```
 
 # Usage
+
+Go Not installed? 
+Download Compiled Version:
+https://github.com/YABOIpy/Go-MassDM/releases
 ```md
 Needs & Inputs:
 ________________________________________________
