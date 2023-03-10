@@ -9,7 +9,9 @@ the functions are still in development
 
 
 # Errors
-```
+```ruby
+ERROR:                                               FIX:
+ "Timed out waiting for pipe '\.\pipe\discord-ipc-0" #disable "Presence" in config.json
 
 ```
 
