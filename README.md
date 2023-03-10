@@ -15,6 +15,25 @@ ERROR:                                               FIX:
 
 ```
 
+# Usage
+```md
+Needs & Inputs:
+________________________________________________
+  [1] Message and Scraped Ids in ids.txt
+  [2] victims User ID
+  [3] Api Request Link
+  [4] Server invite gg/"invite"
+  [5] Server ID
+  [6] Server Invite and Server ID
+  [7] Channel ID and Message
+  [8] Server ID and Channel ID
+  [9] nil
+  [10] Channeld ID And Amount To ping in a single message 
+  [11] Server ID Channel ID Message ID and Bot user ID
+________________________________________________
+
+```
+
 # Config
 _____________
 Recommended Config:
