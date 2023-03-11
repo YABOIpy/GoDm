@@ -5,8 +5,8 @@ coming soon star for updates!
 this will release soon the code is just being uploaded here
 the functions are still in development
 
-![image](https://user-images.githubusercontent.com/110062350/222306213-a9d43e89-1a1e-4315-ae02-5d562664d53e.png)
 
+![image](https://user-images.githubusercontent.com/110062350/224491173-12451501-2e97-4670-bdee-8eb821010e7c.png)
 
 # Errors
 ```ruby
