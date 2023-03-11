@@ -137,6 +137,14 @@ Recommended Config:
 | `Close_Dm` | ADDON | Close Dm after sendinf them a message
 </p>
 
+# TODO
+```
+add the other options
+dynamic Ja3 Fingerprinting
+small nice to have's
+
+```
+
 # Previews:
 
 ![Discord_erO97kHyUK](https://user-images.githubusercontent.com/110062350/224490994-3dee64da-ca1c-4bc8-b563-6c06b2194b40.gif)
