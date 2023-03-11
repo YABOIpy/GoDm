@@ -50,6 +50,22 @@ ________________________________________________
 ```
 
 # Config
+
+
+Proxy Type: Residential rotating
+
+
+Proxies available at:
+
+
+https://iproyal.com
+
+
+https://proxyware.com
+
+
+https://proxies.gg
+
 _____________
 Recommended Config:
 ```json
