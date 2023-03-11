@@ -161,7 +161,7 @@ func (Xc *Config) Joiner(Token string, invite string) {
 		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
 	} else {
 
-		fmt.Println(""+yel+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite,
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite,
 			Xc.Errmsg(*resp),
 		)
 	}
