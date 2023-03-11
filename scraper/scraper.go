@@ -112,7 +112,7 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 		"Cache-Control":            []string{"no-cache"},
 		"Pragma":                   []string{"no-cache"},
 		"Sec-WebSocket-Extensions": []string{"permessage-deflate; client_max_window_bits"},
-		"User-Agent":               []string{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Safari/605.1.15"},
+		"User-Agent":               []string{"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36"},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -133,7 +133,7 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 				"os":                       "Windows",
 				"browser":                  "Vivaldi",
 				"system_locale":            "en-US",
-				"browser_user_agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0",
+				"browser_user_agent":       "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
 				"browser_version":          "94.0",
 				"os_version":               "10",
 				"referrer":                 "",
@@ -176,6 +176,7 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 	return &data
 }
 
+//function from V4nsh4j
 func (Ws *Sock) ReadHello() (int, error) {
 	_, message, err := Ws.Ws.ReadMessage()
 	if err != nil {
