@@ -5,6 +5,8 @@ coming soon star for updates!
 this will release soon the code is just being uploaded here
 the functions are still in development
 
+GoDm Was Made to be Fast and undetectable
+
 
 ![image](https://user-images.githubusercontent.com/110062350/224491173-12451501-2e97-4670-bdee-8eb821010e7c.png)
 
