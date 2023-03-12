@@ -116,7 +116,7 @@ Recommended Config:
 **Config**
 | Name | Type | Description | 
 | ---  | ---  | ---         |
-| `Interval` | CONFIG | The Time in Seconds before iterating 
+| `Interval` | CONFIG | The Time in Seconds before iterating 0 = instant iteration
 | `Errors` | ERRORS | Shows you the error from the request
 
 
@@ -127,7 +127,7 @@ Recommended Config:
 | `Proxy` | HTTP | Your Proxy address Format: 'username:password@hostname:port
 | `Redirect` | HTTP | specifies the policy for handling redirects
 | `Agent` | HEADER | UserAgent for the http client
-| `TimeOut` | HTTP | Time-[s] after request with no response, allowed
+| `TimeOut` | HTTP | Time-[s] after request with no response, allowed 0 = no timeout
 
 **MassDm**
 | Name | Type | Description | 
