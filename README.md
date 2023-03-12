@@ -24,7 +24,9 @@ ERROR:                                               FIX:
 ```
 1. Specify which Function
 2. Show a Screenshot
+3. note the config u had 
 ```
+
 # Usage
 
 Go Not installed? 
@@ -61,7 +63,7 @@ Proxies available at:
 https://iproyal.com
 
 
-https://proxyware.com
+https://proxiware.com
 
 
 https://proxies.gg
