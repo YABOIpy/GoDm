@@ -346,7 +346,7 @@ func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) 
 		req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages",
 			bytes.NewBuffer(
 				Xc.Marsh(map[string]string{
-					"content": msg,
+					"content": Message + " " + msg,
 				}),
 			),
 		)
