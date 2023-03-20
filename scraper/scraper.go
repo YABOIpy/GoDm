@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func Subscribe(ws *Sock, guildid, Channel string) error {
+func Sub(ws *Sock, guildid, Channel string) error {
 	payload := Data{
 		GuildId:    guildid,
 		Typing:     true,
@@ -41,7 +41,7 @@ func (Ws *Sock) Chann(i int, GID string, CID string) []interface{} {
 		}
 	case 0:
 		{
-			err := Subscribe(Ws, GID, CID)
+			err := Sub(Ws, GID, CID)
 			if err != nil {
 				log.Fatal(err)
 			}
