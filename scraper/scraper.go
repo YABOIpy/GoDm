@@ -32,7 +32,6 @@ func Subscribe(ws *Sock, guildid, Channel string) error {
 	return nil
 }
 
-
 func (Ws *Sock) Chann(i int, GID string, CID string) []interface{} {
 	var x []interface{}
 	switch i {
