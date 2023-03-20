@@ -32,7 +32,8 @@ func Subscribe(ws *Sock, guildid, Channel string) error {
 	return nil
 }
 
-func (Ws *Sock) Scrape(GID string, CID string, i int) {
+
+func (Ws *Sock) Chann(i int, GID string, CID string) []interface{} {
 	var x []interface{}
 	switch i {
 	default:
@@ -56,7 +57,11 @@ func (Ws *Sock) Scrape(GID string, CID string, i int) {
 			x = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{200, 299}}
 		}
 	}
+	return x
+}
 
+func (Ws *Sock) Scrape(GID string, CID string, i int) {
+	x := Ws.Chann(i, GID, CID)
 	err := Ws.Ws.WriteJSON(map[string]interface{}{
 		"op": 14,
 		"d": map[string]interface{}{
