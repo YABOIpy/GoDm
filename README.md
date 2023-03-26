@@ -6,6 +6,12 @@ this will release soon the code is just being uploaded here
 the functions are still in development
 
 # About
+<p align="center" style="text-align: center">  
+  <img src="https://img.shields.io/tokei/lines/github/yaboipy/go-massdm">
+  <img src="https://img.shields.io/github/downloads/yaboipy/go-massdm/total?color=blue&label=release%20downloads">
+</p>
+
+
 ```
 GoDm Was Made to be Fast undetectable and simple
 to use and configure for users
