@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"massdm/scraper"
 	"massdm/src"
 	"os"
 	"strconv"
@@ -15,16 +16,22 @@ import (
 var (
 	c = massdm.X()
 	z = massdm.T()
+	s = Scraper.X()
 )
 
 func MassDm(message string) {
 
+	var wg goccm.ConcurrencyManager
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 	ids, err := c.ReadFile("ids.txt")
 	c.Errs(err)
 
-	wg := goccm.New(300)
+	if len(Token) > 300 {
+		wg = goccm.New(len(Token))
+	} else {
+		wg = goccm.New(300)
+	}
 
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -79,6 +86,7 @@ func Spam_Dm(UserID string, message string) {
 
 func Join(invite string) {
 
+	var wg goccm.ConcurrencyManager
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 	interval := c.Config().Mode.Configs.Interval
@@ -88,12 +96,16 @@ func Join(invite string) {
 			if c.Config().Settings.Websock == true {
 				c.WebSock(Token[i])
 			}
-			c.Joiner(Token[i], invite)
+			c.Joiner(Token[i], invite, "", "")
 
 		}
 		Return()
 	} else {
-		wg := goccm.New(300)
+		if len(Token) > 300 {
+			wg = goccm.New(len(Token))
+		} else {
+			wg = goccm.New(300)
+		}
 		for i := 0; i < len(Token); i++ {
 			wg.Wait()
 			go func(i int) {
@@ -101,7 +113,7 @@ func Join(invite string) {
 				if c.Config().Settings.Websock == true {
 					c.WebSock(Token[i])
 				}
-				c.Joiner(Token[i], invite)
+				c.Joiner(Token[i], invite, "", "")
 			}(i)
 		}
 		wg.WaitAllDone()
@@ -131,6 +143,7 @@ func Leave(ID string) {
 }
 
 func Check() {
+	var wg goccm.ConcurrencyManager
 	token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 	f := [3]string{
@@ -141,7 +154,13 @@ func Check() {
 	for i := 0; i < len(f); i++ {
 		os.Truncate(f[i], 0)
 	}
-	wg := goccm.New(300)
+
+	if len(token) > 300 {
+		wg = goccm.New(len(token))
+	} else {
+		wg = goccm.New(300)
+	}
+
 	start := time.Now()
 	for i := 0; i < len(token); i++ {
 		wg.Wait()
@@ -227,7 +246,9 @@ func Raid(message string, ID string) {
 
 func Scrape(Token string, GID string, CID string) {
 	for {
-		//c.Scrape(Token)
+		data := s.Connect(Token)
+		fmt.Println(data)
+		//s.Scrape(GID, CID, 0)
 		fmt.Println("scraping...")
 	}
 	Return()

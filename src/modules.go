@@ -57,6 +57,74 @@ func ReadBody(resp http.Response) ([]byte, error) {
 	return body, nil
 }
 
+func (Xc *Config) Captcha(WebKey string) (cap string) {
+	Key := Xc.Config().Mode.Discord.ApiKey
+	payload := map[string]interface{}{
+		"clientKey": Key,
+		"task": map[string]interface{}{
+			"type":       "HCaptchaTaskProxyless",
+			"userAgent":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36 Edg/92.0.902.73",
+			"websiteKey": WebKey,
+			"websiteURL": "https://discord.com/",
+		},
+	}
+	req, err := xhttp.NewRequest("POST",
+		"https://api.capmonster.cloud/createTask",
+		bytes.NewBuffer(
+			Xc.Marsh_btn(payload),
+		),
+	)
+	Xc.Errs(err)
+
+	resp, err := xhttp.DefaultClient.Do(req)
+	Xc.Errs(err)
+
+	var data CapmonsterResp
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(body, &data)
+	Xc.Errs(err)
+
+	if resp.StatusCode == 200 {
+		task := data.TaskID
+
+		for {
+			req, err := xhttp.NewRequest("POST",
+				"https://api.capmonster.cloud/getTaskResult",
+				bytes.NewBuffer(
+					Xc.Marsh(
+						map[string]string{
+							"clientKey": Key,
+							"taskId":    strconv.Itoa(task),
+						},
+					),
+				),
+			)
+			Xc.Errs(err)
+
+			resp, err := xhttp.DefaultClient.Do(req)
+			Xc.Errs(err)
+
+			responseBody := make(map[string]interface{})
+			json.NewDecoder(resp.Body).Decode(&responseBody)
+			status := responseBody["status"]
+			Xc.Errs(err)
+			if status == "ready" {
+				cap = responseBody["solution"].(map[string]interface{})["gRecaptchaResponse"].(string)
+				break
+			} else if status == "processing" {
+				continue
+			} else {
+				fmt.Println("[ERR] | ", string(body))
+			}
+		}
+	} else {
+		Xc.Errs(err)
+	}
+
+	return cap
+}
+
 func (Xc *Config) Errmsg(response http.Response) (errmsg string) {
 	body, _ := ReadBody(response)
 
@@ -106,6 +174,33 @@ func (Xc *Config) CheckConfig() {
 		cfg.Con.Solution = cfg.Con.Tokenclr + strconv.Itoa(c.Con.Toks)
 	}
 
+}
+
+func (Xc *Config) GetJa3() (ja3 string) {
+	req, err := http.NewRequest("GET", "https://tls.peet.ws/api/clean", nil)
+
+	Xc.Errs(err)
+
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	Xc.Errs(err)
+
+	var data Ja3resp
+	err = json.Unmarshal(body, &data)
+	Xc.Errs(err)
+
+	switch resp.StatusCode {
+	case 200:
+		fmt.Println(string(body))
+		ja3 = string(data.Ja3)
+	default:
+		//ja3 = Xc.Config().Mode.Network.Ja3
+	}
+
+	return ja3
 }
 
 func (Xc *Config) Config() Config {
@@ -280,6 +375,9 @@ func (Xc *Config) Presence(Count int) {
 	now := time.Now()
 	err := client.Login(Xc.Config().Mode.Discord.AppID)
 	Xc.Errs(err)
+	if Count == 0 {
+		Count += 1
+	}
 	client.SetActivity(client.Activity{
 		State:      "Bots Loaded:",
 		Details:    "Go Mass DM | github.com/YABOIpy",
@@ -352,7 +450,7 @@ func (Xc *Config) WebSock(token string) {
 					},
 					Name:  "GoDm | https://github.com/yaboipy",
 					Type:  4,
-					State: "GoDm V" + strconv.Itoa(Xc.Config().Mode.Discord.Version),
+					State: "GoDm V" + fmt.Sprint(Xc.Config().Mode.Discord.Version),
 					Emoji: "🌐",
 				},
 				Afk: false,
@@ -387,7 +485,7 @@ func (Xc *Config) Logo() string {
     
 	[` + r + `Proxy: ` + cfg.Con.ProxyMode + clr + `]   	[` + r + `Tokens: ` + cfg.Con.Solution + clr + `]	~` + r + `YABOI` + clr + `
 	[` + r + `1` + clr + `]` + r + ` Mass DM ` + clr + `		[` + r + `10` + clr + `]` + r + ` Mass Ping ` + clr + `
-	[` + r + `2` + clr + `]` + r + ` Dm Spam ` + clr + `		[` + r + `11` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `2` + clr + `]` + r + ` Dm Spam ` + clr + `		[` + r + `11` + clr + `]` + r + ` Button Click ` + clr + `
 	[` + r + `3` + clr + `]` + r + ` React Verify ` + clr + `	[` + r + `12` + clr + `]` + r + `	x ` + clr + `
 	[` + r + `4` + clr + `]` + r + ` Joiner ` + clr + `		[` + r + `13` + clr + `]` + r + `	x ` + clr + `
 	[` + r + `5` + clr + `]` + r + ` Leaver ` + clr + `		[` + r + `14` + clr + `]` + r + `	x ` + clr + `

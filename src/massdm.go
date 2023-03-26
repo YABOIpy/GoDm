@@ -135,11 +135,23 @@ func (Xc *Config) Dm_Spam(ID string, Token string, Msg string) {
 	Xc.Dm(ID, Token, Msg, Cookies)
 }
 
-func (Xc *Config) Joiner(Token string, invite string) {
-	req, err := http.NewRequest("POST", "https://discord.com/api/v9/invites/"+invite+"",
+func (Xc *Config) Joiner(Token string, invite string, cap string, captoken string) {
+
+	var payload map[string]string
+	if len(cap) > 2 {
+		payload = map[string]string{
+			"captcha_key":     cap,
+			"captcha_rqtoken": captoken,
+		}
+	} else {
+		payload = map[string]string{"": ""}
+	}
+
+	req, err := http.NewRequest("POST",
+		"https://discord.com/api/v9/invites/"+invite+"",
 		bytes.NewBuffer(
 			Xc.Marsh(
-				map[string]string{"": ""},
+				payload,
 			),
 		),
 	)
@@ -149,19 +161,28 @@ func (Xc *Config) Joiner(Token string, invite string) {
 	resp, err := Client.Do(req)
 	Xc.Errs(err)
 
+	var data JoinResp
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(body, &data)
 	Xc.Errs(err)
 
 	if resp.StatusCode == 200 {
-		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Joined " + clr + "discord.gg/" + invite)
+		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Joined "+clr+"discord.gg/"+invite, r)
 	} else if resp.StatusCode == 429 {
 		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" RateLimit", r)
 	} else if strings.Contains(string(body), "captcha_sitekey") {
-		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
+		if Xc.Config().Mode.Configs.Solver {
+			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Solving Captcha... "+clr+"discord.gg/"+invite, r)
+			cap := Xc.Captcha(data.SiteKey)
+			captoken := data.RqToken
+			Xc.Joiner(Token, invite, cap, captoken)
+		} else {
+			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
+		}
 	} else {
 
-		fmt.Println(""+yel+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite,
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite,
 			Xc.Errmsg(*resp),
 		)
 	}
@@ -346,7 +367,7 @@ func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) 
 		req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages",
 			bytes.NewBuffer(
 				Xc.Marsh(map[string]string{
-					"content": msg,
+					"content": Message + " " + msg,
 				}),
 			),
 		)

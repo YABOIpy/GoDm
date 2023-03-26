@@ -22,6 +22,7 @@ type Checker struct {
 
 type Config struct {
 	Ws      *Sock
+	Client  *http.Client
 	Headers map[string]string
 	Dcfd    string
 	Sdcfd   string
@@ -43,15 +44,17 @@ type Config struct {
 			Agent    string `json:"Agent"`
 		} `json:"Net"`
 		Discord struct {
-			CfbM    bool   `json:"CfBm"`
-			Version int    `json:"Ver"`
-			Status  string `json:"Status"`
-			AppID   string `json:"AppID"`
-			RPC     bool   `json:"Presence"`
+			CfbM    bool    `json:"CfBm"`
+			Version float64 `json:"Ver"`
+			Status  string  `json:"Status"`
+			AppID   string  `json:"AppID"`
+			RPC     bool    `json:"Presence"`
+			ApiKey  string  `json:"Api_Key"`
 		} `json:"Discord"`
 		Configs struct {
 			Interval int  `json:"Interval"`
 			Errormsg bool `json:"Errors"`
+			Solver   bool `json:"SolveCaptcha"`
 		} `json:"Config"`
 	} `json:"Modes"`
 
@@ -62,6 +65,24 @@ type Config struct {
 		Errors    bool
 		Toks      int
 	}
+}
+
+type Ja3resp struct {
+	Ja3 string `json:"ja3"`
+}
+
+type JoinResp struct {
+	SiteKey string `json:"captcha_sitekey"`
+	RqToken string `json:"captcha_rqtoken,omitempty"`
+}
+
+type CapmonsterResp struct {
+	TaskID int `json:"taskId"`
+}
+
+type TaskResp struct {
+	Status   string      `json:"status"`
+	Solution interface{} `json:"solution"`
 }
 
 type Sock struct {

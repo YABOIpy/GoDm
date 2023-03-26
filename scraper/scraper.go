@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func Subscribe(ws *Sock, guildid, Channel string) error {
+func Sub(ws *Sock, guildid, Channel string) error {
 	payload := Data{
 		GuildId:    guildid,
 		Typing:     true,
@@ -32,7 +32,7 @@ func Subscribe(ws *Sock, guildid, Channel string) error {
 	return nil
 }
 
-func (Ws *Sock) Scrape(GID string, CID string, i int) {
+func (Ws *Sock) Chann(i int, GID string, CID string) []interface{} {
 	var x []interface{}
 	switch i {
 	default:
@@ -41,7 +41,7 @@ func (Ws *Sock) Scrape(GID string, CID string, i int) {
 		}
 	case 0:
 		{
-			err := Subscribe(Ws, GID, CID)
+			err := Sub(Ws, GID, CID)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -56,7 +56,11 @@ func (Ws *Sock) Scrape(GID string, CID string, i int) {
 			x = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{200, 299}}
 		}
 	}
+	return x
+}
 
+func (Ws *Sock) Scrape(GID string, CID string, i int) {
+	x := Ws.Chann(i, GID, CID)
 	err := Ws.Ws.WriteJSON(map[string]interface{}{
 		"op": 14,
 		"d": map[string]interface{}{
@@ -112,7 +116,7 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 		"Cache-Control":            []string{"no-cache"},
 		"Pragma":                   []string{"no-cache"},
 		"Sec-WebSocket-Extensions": []string{"permessage-deflate; client_max_window_bits"},
-		"User-Agent":               []string{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Safari/605.1.15"},
+		"User-Agent":               []string{"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36"},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -133,7 +137,7 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 				"os":                       "Windows",
 				"browser":                  "Vivaldi",
 				"system_locale":            "en-US",
-				"browser_user_agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0",
+				"browser_user_agent":       "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
 				"browser_version":          "94.0",
 				"os_version":               "10",
 				"referrer":                 "",
@@ -176,6 +180,7 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 	return &data
 }
 
+//function from V4nsh4j
 func (Ws *Sock) ReadHello() (int, error) {
 	_, message, err := Ws.Ws.ReadMessage()
 	if err != nil {
