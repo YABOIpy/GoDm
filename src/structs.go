@@ -55,6 +55,7 @@ type Config struct {
 			Interval int  `json:"Interval"`
 			Errormsg bool `json:"Errors"`
 			Solver   bool `json:"SolveCaptcha"`
+			ErrorLog bool `json:"ErrorLog"`
 		} `json:"Config"`
 	} `json:"Modes"`
 
@@ -285,5 +286,4 @@ var (
 	red     = "\033[31m"
 	clr     = "\033[36m"
 	r       = "\033[39m"
-	
 )
