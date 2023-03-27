@@ -367,6 +367,9 @@ func (Xc *Config) Cls() {
 
 func (Xc *Config) Errs(err error) {
 	if err != nil {
+		if Xc.Config().Mode.Configs.ErrorLog {
+			Xc.WriteFile("errors.txt", err.Error())
+		}
 		log.Fatal(err)
 	}
 }
