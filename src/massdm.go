@@ -176,6 +176,7 @@ func (Xc *Config) Joiner(Token string, invite string, cap string, captoken strin
 			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Solving Captcha... "+clr+"discord.gg/"+invite, r)
 			cap := Xc.Captcha(data.SiteKey)
 			captoken := data.RqToken
+			fmt.Println(captoken)
 			Xc.Joiner(Token, invite, cap, captoken)
 		} else {
 			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
@@ -316,7 +317,7 @@ func (Xc *Config) Buttons(Token string, GID string, CID string, MID string, BotI
 	resp, err := Client.Do(req)
 	Xc.Errs(err)
 
-	if resp.StatusCode == 204 {
+	if resp.StatusCode == 204|200 {
 		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Clicked Button ")
 	} else if resp.StatusCode == 429 {
 		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Click Button "+yel+" RateLimit", r)
