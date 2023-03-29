@@ -166,13 +166,13 @@ func Check() {
 		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
-			z.Check(token[i])
+			Token := z.Check(token[i])
 			if z.Resp == true {
-				c.WriteFile("data/valid.txt", token[i])
+				c.WriteFile("data/valid.txt", Token)
 			} else if z.Resp == false {
-				c.WriteFile("data/locked.txt", token[i])
+				c.WriteFile("data/locked.txt", Token)
 			} else {
-				c.WriteFile("data/invalid.txt", token[i])
+				c.WriteFile("data/invalid.txt", Token)
 			}
 
 		}(i)
