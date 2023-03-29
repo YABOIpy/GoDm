@@ -5,8 +5,13 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
+	"massdm/src"
 	"net/http"
 	"time"
+)
+
+var (
+	c = massdm.X()
 )
 
 func Sub(ws *Sock, guildid, Channel string) error {
@@ -118,13 +123,10 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 		"Sec-WebSocket-Extensions": []string{"permessage-deflate; client_max_window_bits"},
 		"User-Agent":               []string{"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36"},
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	c.Errs(err)
 	Ws.Ws = ws
 	interval, err := Ws.ReadHello()
 	if err != nil {
-		Ws.Ws.Close()
 		log.Fatal(err)
 	}
 
