@@ -1,8 +1,7 @@
 # Go-MassDM
 coming soon star for updates!
 
-https://gomassdm.github.io
-
+# https://gomassdm.github.io
 this will release soon the code is just being uploaded here
 the functions are still in development
 
