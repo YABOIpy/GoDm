@@ -74,6 +74,8 @@ https://proxiware.com
 
 https://proxies.gg
 
+Format: user:pass@ip:port
+
 _____________
 Recommended Config:
 ```json
