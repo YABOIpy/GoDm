@@ -156,6 +156,7 @@ Recommended Config:
 add the other options
 dynamic Ja3 Fingerprinting
 small nice to have's
+fix some of the hardcoded headers
 
 ```
 
