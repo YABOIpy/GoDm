@@ -53,6 +53,7 @@ ________________________________________________
   [9] Tokens in tokens.txt
   [10] Channeld ID And Amount To ping in a single message 
   [11] Server ID Channel ID Message ID and Bot user ID
+  [12] Victims Full Username / USER#0000
 ________________________________________________
 
 ```
