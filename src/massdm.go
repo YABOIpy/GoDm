@@ -176,7 +176,6 @@ func (Xc *Config) Joiner(Token string, invite string, cap string, captoken strin
 			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Solving Captcha... "+clr+"discord.gg/"+invite, r)
 			cap := Xc.Captcha(data.SiteKey)
 			captoken := data.RqToken
-			fmt.Println(captoken)
 			Xc.Joiner(Token, invite, cap, captoken)
 		} else {
 			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
@@ -257,7 +256,38 @@ func (Xc *Config) Agree(Token string, invite string, ID string) {
 
 }
 
-func (Xc *Checker) Check(token string) string {
+func (Xc *Config) Friend(Token string, username string, discrim string) {
+
+	req, err := http.NewRequest("POST",
+		"https://discord.com/api/v9/users/@me/relationships",
+		bytes.NewBuffer(
+			Xc.Marsh(
+				map[string]string{
+					"username":      username,
+					"discriminator": discrim,
+				},
+			),
+		),
+	)
+	Xc.Errs(err)
+
+	Hd.Head_Friend(req, Token)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	if resp.StatusCode == 204|200 {
+		fmt.Println("" + grn + "▏(" + grn + "+" + r + ") Sent Friend Request To: " +
+			username + "#" + discrim,
+		)
+	} else {
+		fmt.Println("" + grn + "▏(" + grn + "+" + r + ") Failed To Friend Request: " +
+			username + "#" + discrim,
+		)
+	}
+
+}
+
+func (Xc *Checker) Check(token string) (string, valid string) {
 
 	req, _ := http.NewRequest("GET", urls, nil)
 
@@ -267,23 +297,22 @@ func (Xc *Checker) Check(token string) string {
 	var typ = Xc.Resp
 
 	if resp.StatusCode == 200 {
-		typ = true
-		fmt.Println(""+grn+"▏("+grn+"✓"+r+") ("+grn+"+"+r+"):", token[:50]+"...")
+		fmt.Println(""+grn+"▏ "+r+"("+grn+"✓"+r+") ("+grn+"+"+r+"):", token[:50]+"...")
+		valid = token
 		Xc.Valid++
 
 	} else if resp.StatusCode == 403 {
-		typ = false
-		fmt.Println(""+yel+"▏("+yel+"/"+r+"):", token[:50]+"...")
+		fmt.Println(""+yel+"▏ "+r+"("+yel+"/"+r+"):", token[:50]+"...")
 		Xc.Locked++
 	} else {
-		fmt.Println(""+red+"▏("+red+"x"+r+"):", token[:50]+"...")
+		fmt.Println(""+red+"▏ "+r+"("+red+"x"+r+"):", token[:50]+"...")
 		Xc.Invalid++
 	}
 
 	Xc.All++
 	Xc.Resp = typ
 	Xc.Token = token
-	return Xc.Token
+	return Xc.Token, valid
 }
 
 func (Xc *Config) Buttons(Token string, GID string, CID string, MID string, BotID string, Type int, Comp int, Text string) {
