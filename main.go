@@ -7,6 +7,7 @@ import (
 	"massdm/src"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -166,9 +167,9 @@ func Check() {
 		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
-			Token := z.Check(token[i])
-			if z.Resp == true {
-				c.WriteFile("data/valid.txt", Token)
+			Token, Valid := z.Check(token[i])
+			if Valid != "" {
+				c.WriteFile("data/valid.txt", Valid)
 			} else if z.Resp == false {
 				c.WriteFile("data/locked.txt", Token)
 			} else {
@@ -242,6 +243,28 @@ func Raid(message string, ID string) {
 		}(i)
 	}
 	wg.Wait()
+}
+
+func Friend(user string) {
+
+	username := strings.Split(user, "#")
+	Token, err := c.ReadFile("tokens.txt")
+	c.Errs(err)
+
+	var wg sync.WaitGroup
+	wg.Add(len(Token))
+
+	for i := 0; i < len(Token); i++ {
+		go func(i int) {
+			defer wg.Done()
+			if c.Config().Settings.Websock == true {
+				c.WebSock(Token[i])
+			}
+			c.Friend(Token[i], username[0], username[1])
+		}(i)
+	}
+	wg.Wait()
+	Return()
 }
 
 func Scrape(Token string, GID string, CID string) {
@@ -397,6 +420,11 @@ func main() {
 		fmt.Scanln(&Comp)
 		Click(GID, CID, MID, BotID, Type, Comp, Text)
 
+	} else if choice == 12 {
+		var user string
+		fmt.Print("	[username#0000]>: ")
+		fmt.Scanln(&user)
+		Friend(user)
 	} else {
 		fmt.Println("[\u001B[31m~\u001B[39m]	Wrong Input")
 		time.Sleep(1 * time.Second)
