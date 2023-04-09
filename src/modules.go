@@ -58,6 +58,29 @@ func ReadBody(resp http.Response) ([]byte, error) {
 }
 
 func (Xc *Config) Captcha(WebKey string) (cap string) {
+	switch Xc.Config().Mode.Discord.Service {
+	case "capmonster":
+		cap = Xc.Capmonster_Solve(WebKey)
+	case "2captcha":
+		cap = Xc.TwoCaptcha_Solve(WebKey)
+	}
+
+	return cap
+}
+
+func (Xc *Config) TwoCaptcha_Solve(WebKey string) (cap string) {
+	url := "http://2captcha.com/in.php?key=" + Xc.Config().Mode.Discord.ApiKey + "&method=hcaptcha&sitekey=" + WebKey + "&pageurl=https://discord.com"
+	resp, err := xhttp.Get(url)
+	Xc.Errs(err)
+	if resp.StatusCode == 200 {
+		fmt.Println(resp)
+	} else {
+		fmt.Println("Somethign Whent wrong: ", resp)
+	}
+	return cap
+}
+
+func (Xc *Config) Capmonster_Solve(WebKey string) (cap string) {
 	Key := Xc.Config().Mode.Discord.ApiKey
 	payload := map[string]interface{}{
 		"clientKey": Key,
@@ -322,6 +345,10 @@ func (Xc *Config) Decerr(resp http.Response) {
 	fmt.Println(data)
 }
 
+func (Xc *Config) Format_Tokens() {
+
+}
+
 func (Xc *Config) Write_ID(ids []string) {
 	for _, v := range ids {
 		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") ID:", v)
@@ -489,7 +516,7 @@ func (Xc *Config) Logo() string {
 	[` + r + `Proxy: ` + cfg.Con.ProxyMode + clr + `]   	[` + r + `Tokens: ` + cfg.Con.Solution + clr + `]	~` + r + `YABOI` + clr + `
 	[` + r + `1` + clr + `]` + r + ` Mass DM ` + clr + `		[` + r + `10` + clr + `]` + r + ` Mass Ping ` + clr + `
 	[` + r + `2` + clr + `]` + r + ` Dm Spam ` + clr + `		[` + r + `11` + clr + `]` + r + ` Button Click ` + clr + `
-	[` + r + `3` + clr + `]` + r + ` React Verify ` + clr + `	[` + r + `12` + clr + `]` + r + `	x ` + clr + `
+	[` + r + `3` + clr + `]` + r + ` React Verify ` + clr + `	[` + r + `12` + clr + `]` + r + ` Friender ` + clr + `
 	[` + r + `4` + clr + `]` + r + ` Joiner ` + clr + `		[` + r + `13` + clr + `]` + r + `	x ` + clr + `
 	[` + r + `5` + clr + `]` + r + ` Leaver ` + clr + `		[` + r + `14` + clr + `]` + r + `	x ` + clr + `
 	[` + r + `6` + clr + `]` + r + ` Accept Rules ` + clr + `	[` + r + `15` + clr + `]` + r + `	x ` + clr + `
