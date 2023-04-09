@@ -1,6 +1,9 @@
 # Go-MassDM
 coming soon star for updates!
 
+# https://yabois-organization.gitbook.io/godm/
+
+
 # https://gomassdm.github.io
 this will release soon the code is just being uploaded here
 the functions are still in development
