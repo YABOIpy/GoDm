@@ -52,7 +52,7 @@ ________________________________________________
   [5] Server ID
   [6] Server Invite and Server ID
   [7] Channel ID and Message
-  [8] Server ID and Channel ID
+  [8] Token Server ID and Channel ID
   [9] Tokens in tokens.txt
   [10] Channeld ID And Amount To ping in a single message 
   [11] Server ID Channel ID Message ID and Bot user ID
