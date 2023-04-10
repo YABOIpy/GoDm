@@ -1,4 +1,4 @@
-# Go-MassDM
+# GoDm
 coming soon star for updates!
 
 # https://yabois-organization.gitbook.io/godm/
