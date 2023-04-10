@@ -10,8 +10,8 @@ the functions are still in development
 
 # About
 <p align="center" style="text-align: center"> 
-  <img src="https://img.shields.io/tokei/lines/github/yaboipy/go-massdm">3.6k
-  <img src="https://img.shields.io/github/downloads/yaboipy/go-massdm/total?color=blue&label=users">
+  <img src="https://img.shields.io/tokei/lines/github/yaboipy/godm">3.6k
+  <img src="https://img.shields.io/github/downloads/yaboipy/godm/total?color=blue&label=users">
 </p>
 
 
