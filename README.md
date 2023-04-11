@@ -168,3 +168,5 @@ fix some of the hardcoded headers
 
 ![Discord_erO97kHyUK](https://user-images.githubusercontent.com/110062350/224490994-3dee64da-ca1c-4bc8-b563-6c06b2194b40.gif)
 
+this is for educational use ONLY ;)
+i am not held responsible for damage caused by this tool
