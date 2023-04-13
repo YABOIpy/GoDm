@@ -50,6 +50,7 @@ type Config struct {
 			AppID   string  `json:"AppID"`
 			RPC     bool    `json:"Presence"`
 			ApiKey  string  `json:"Api_Key"`
+			Service string  `json:"Service"`
 		} `json:"Discord"`
 		Configs struct {
 			Interval int  `json:"Interval"`
