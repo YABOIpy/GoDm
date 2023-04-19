@@ -183,6 +183,10 @@ func Check() {
 	wg.Wait()
 	elapsed := time.Since(start)
 	fmt.Println("["+grn+"✓"+r+"] (TIME):", elapsed.String()[:4]+"Ms", "("+yel+"LOCKED"+r+"):", c.Checker.Locked, "("+red+"INVALID"+r+"):", c.Checker.Invalid, "("+grn+"VALID"+r+"):", c.Checker.Valid, "(TOTAL):", c.Checker.All)
+	c.Checker.All = 0
+	c.Checker.Locked = 0
+	c.Checker.Valid = 0
+	c.Checker.Invalid = 0
 	Return()
 }
 
