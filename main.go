@@ -16,7 +16,6 @@ import (
 
 var (
 	c = massdm.X()
-	z = massdm.T()
 	s = Scraper.X()
 )
 
@@ -144,8 +143,8 @@ func Leave(ID string) {
 }
 
 func Check() {
-	var wg goccm.ConcurrencyManager
-	token, err := c.ReadFile("tokens.txt")
+
+	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 	f := [3]string{
 		"data/valid.txt",
@@ -155,32 +154,35 @@ func Check() {
 	for i := 0; i < len(f); i++ {
 		os.Truncate(f[i], 0)
 	}
+	var (
+		grn = "\033[32m"
+		yel = "\033[33m"
+		red = "\033[31m"
+		r   = "\033[39m"
+	)
 
-	if len(token) > 300 {
-		wg = goccm.New(len(token))
-	} else {
-		wg = goccm.New(300)
-	}
+	var wg sync.WaitGroup
+	wg.Add(len(Token))
 
 	start := time.Now()
-	for i := 0; i < len(token); i++ {
-		wg.Wait()
+	for i := 0; i < len(Token); i++ {
 		go func(i int) {
 			defer wg.Done()
-			Token, Valid := z.Check(token[i])
-			if Valid != "" {
-				c.WriteFile("data/valid.txt", Valid)
-			} else if z.Resp == false {
-				c.WriteFile("data/locked.txt", Token)
-			} else {
-				c.WriteFile("data/invalid.txt", Token)
+			r := c.Check(Token[i])
+			switch r {
+			case 200:
+				c.WriteFile("data/valid.txt", Token[i])
+			case 403:
+				c.WriteFile("data/locked.txt", Token[i])
+			default:
+				c.WriteFile("data/invalid.txt", Token[i])
 			}
 
 		}(i)
 	}
-	wg.WaitAllDone()
+	wg.Wait()
 	elapsed := time.Since(start)
-	fmt.Println("[\033[32m✓\033[39m] (TIME\033[39m):", elapsed.String()[:4]+"Ms", "\033[39m(\033[33mLOCKED\033[39m):", z.Locked, "(\033[31mINVALID\033[39m):", z.Invalid, "(\033[32mVALID\033[39m):", z.Valid, "(\u001b[34;1mTOTAL\033[39m):", z.All)
+	fmt.Println("["+grn+"✓"+r+"] (TIME):", elapsed.String()[:4]+"Ms", "("+yel+"LOCKED"+r+"):", c.Checker.Locked, "("+red+"INVALID"+r+"):", c.Checker.Invalid, "("+grn+"VALID"+r+"):", c.Checker.Valid, "(TOTAL):", c.Checker.All)
 	Return()
 }
 
@@ -269,8 +271,10 @@ func Friend(user string) {
 
 func Scrape(Token string, GID string, CID string) {
 	for {
-		data := s.Connect(Token)
-		fmt.Println(data)
+		resp, rep := s.Connect(Token)
+		fmt.Println(resp.Data, string(rep))
+		//s.Scrape(resp, GID, CID, 0)
+		//fmt.Println(data)
 		//s.Scrape(GID, CID, 0)
 		fmt.Println("scraping...")
 	}
