@@ -397,7 +397,7 @@ func (Xc *Config) Errs(err error) {
 		if Xc.Config().Mode.Configs.ErrorLog {
 			Xc.WriteFile("errors.txt", err.Error())
 		}
-		log.Fatal(err)
+		fmt.Errorf(red+"▏"+r+"("+red+"+"+r+") Error"+red+":"+ r, err)
 	}
 }
 
