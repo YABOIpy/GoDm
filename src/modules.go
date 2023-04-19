@@ -11,7 +11,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/hugolgst/rich-go/client"
 	"io/ioutil"
-	"log"
 	"massdm/scraper"
 	"math/rand"
 	xhttp "net/http"
@@ -397,7 +396,7 @@ func (Xc *Config) Errs(err error) {
 		if Xc.Config().Mode.Configs.ErrorLog {
 			Xc.WriteFile("errors.txt", err.Error())
 		}
-		fmt.Errorf(red+"▏"+r+"("+red+"+"+r+") Error"+red+":"+ r, err)
+		fmt.Errorf(red+"▏"+r+"("+red+"+"+r+") Error"+red+":"+r, err)
 	}
 }
 
@@ -434,7 +433,7 @@ func (Xc *Config) Presence(Count int) {
 
 func (Xc *Config) Socket(Token string) *Scraper.WsResp {
 	c := Scraper.X()
-	x := c.Connect(Token)
+	x, _ := c.Connect(Token)
 
 	return x
 }
