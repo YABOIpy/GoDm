@@ -7,6 +7,7 @@ import (
 	http "github.com/Danny-Dasilva/fhttp"
 	"io/ioutil"
 	"math/rand"
+	shttp "net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -287,32 +288,30 @@ func (Xc *Config) Friend(Token string, username string, discrim string) {
 
 }
 
-func (Xc *Checker) Check(token string) (string, valid string) {
-
-	req, _ := http.NewRequest("GET", urls, nil)
+func (Xc *Config) Check(token string) int {
+	req, err := shttp.NewRequest("GET", urls, nil)
+	Xc.Errs(err)
 
 	req.Header.Set("authorization", token)
-	resp, _ := Xc.Client.Do(req)
 
-	var typ = Xc.Resp
+	sClient := &shttp.Client{}
+	resp, err := sClient.Do(req)
+	Xc.Errs(err)
 
 	if resp.StatusCode == 200 {
 		fmt.Println(""+grn+"▏ "+r+"("+grn+"✓"+r+") ("+grn+"+"+r+"):", token[:50]+"...")
-		valid = token
-		Xc.Valid++
+		Xc.Checker.Valid++
 
 	} else if resp.StatusCode == 403 {
 		fmt.Println(""+yel+"▏ "+r+"("+yel+"/"+r+"):", token[:50]+"...")
-		Xc.Locked++
+		Xc.Checker.Locked++
 	} else {
 		fmt.Println(""+red+"▏ "+r+"("+red+"x"+r+"):", token[:50]+"...")
-		Xc.Invalid++
+		Xc.Checker.Invalid++
 	}
 
-	Xc.All++
-	Xc.Resp = typ
-	Xc.Token = token
-	return Xc.Token, valid
+	Xc.Checker.All++
+	return resp.StatusCode
 }
 
 func (Xc *Config) Buttons(Token string, GID string, CID string, MID string, BotID string, Type int, Comp int, Text string) {
@@ -420,10 +419,5 @@ func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) 
 
 func X() Config {
 	x := Config{}
-	return x
-}
-
-func T() Checker {
-	x := Checker{}
 	return x
 }
