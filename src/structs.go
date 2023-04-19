@@ -10,16 +10,6 @@ type ChannelID struct {
 	ID string `json:"id,omitempty"`
 }
 
-type Checker struct {
-	Client  http.Client
-	Invalid int
-	Locked  int
-	Token   string
-	Valid   int
-	Resp    bool
-	All     int
-}
-
 type Config struct {
 	Ws      *Sock
 	Client  *http.Client
@@ -28,6 +18,14 @@ type Config struct {
 	Sdcfd   string
 	Length  int
 	ID      string
+
+	Checker struct {
+		Client  http.Client
+		Invalid int
+		Locked  int
+		Valid   int
+		All     int
+	}
 
 	Settings struct {
 		Websock bool `json:"Websocket"`
