@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 func Sub(ws *Sock, guildid, Channel string) error {
 	payload := Data{
 		GuildId:    guildid,
@@ -60,7 +59,7 @@ func (Ws *Sock) Chann(i int, GID string, CID string) []interface{} {
 	return x
 }
 
-func (Ws *Sock) Scrape(GID string, CID string, i int) {
+func (Ws *Sock) Scrape(WsData *WsResp, GID string, CID string, i int) {
 	x := Ws.Chann(i, GID, CID)
 	err := Ws.Ws.WriteJSON(map[string]interface{}{
 		"op": 14,
@@ -86,7 +85,7 @@ func (Ws *Sock) ReadMsg() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("WORKSS!")
+
 		var data WsResp
 		if err := json.Unmarshal(body, &data); err != nil {
 			continue
@@ -109,7 +108,7 @@ func (Ws *Sock) ReadMsg() {
 	}
 }
 
-func (Ws *Sock) Connect(Token string) *WsResp {
+func (Ws *Sock) Connect(Token string) (*WsResp, []byte) {
 	var dailer websocket.Dialer
 	ws, _, err := dailer.Dial("wss://gateway.discord.gg/?v=10&encoding=json", http.Header{
 		"Accept-Encoding":          []string{"gzip, deflate, br"},
@@ -163,6 +162,7 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 		},
 	})
 	var data WsResp
+	var bd []byte
 	if err != nil {
 		log.Fatal(err)
 	} else {
@@ -173,11 +173,11 @@ func (Ws *Sock) Connect(Token string) *WsResp {
 			log.Fatal(err)
 
 		}
-
+		bd = b
 		go Ws.Ping(time.Duration(interval) * time.Millisecond)
 
 	}
-	return &data
+	return &data, bd
 }
 
 //function from V4nsh4j
