@@ -100,7 +100,7 @@ func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
 		errx := json.Unmarshal(body, &flake)
 		Xc.Errs(errx)
 		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Created Channel:"+clr+"", flake.ID)
-		Xc.Dm(flake.ID, Token, Msg, Cookies)
+		Xc.Dm(flake.ID, Token, Msg, Cookie)
 		return flake.ID, err
 
 	} else {
@@ -133,12 +133,13 @@ func (Xc *Config) Block(ID int, Token string, Cookies string) {
 }
 
 func (Xc *Config) Dm_Spam(ID string, Token string, Msg string) {
-	Xc.Dm(ID, Token, Msg, Cookies)
+	Xc.Dm(ID, Token, Msg, Cookie)
 }
 
-func (Xc *Config) Joiner(Token string, invite string, cap string, captoken string) {
+func (Xc *Config) Joiner(Token string, invite string, cap string, captoken string, ccount int) {
 
 	var payload map[string]string
+	var capcount string
 	if len(cap) > 2 {
 		payload = map[string]string{
 			"captcha_key":     cap,
@@ -172,19 +173,31 @@ func (Xc *Config) Joiner(Token string, invite string, cap string, captoken strin
 		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Joined "+clr+"discord.gg/"+invite, r)
 	} else if resp.StatusCode == 429 {
 		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" RateLimit", r)
+	} else if resp.StatusCode == 403 {
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Locked "+clr+"("+bg+strings.Split(Token, ".")[0]+br+clr+")", r)
 	} else if strings.Contains(string(body), "captcha_sitekey") {
+		if ccount >= 1 {
+			capcount = clr + "[" + bg + strconv.Itoa(ccount) + br + clr + "]" + r
+		}
 		if Xc.Config().Mode.Configs.Solver {
-			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Solving Captcha... "+clr+"discord.gg/"+invite, r)
+			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Solving Captcha "+capcount+clr+"discord.gg/"+invite, r)
 			cap := Xc.Captcha(data.SiteKey)
 			captoken := data.RqToken
-			Xc.Joiner(Token, invite, cap, captoken)
+			ccount++
+			Xc.Joiner(Token, invite, cap, captoken, ccount)
 		} else {
 			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
 		}
 	} else {
-
+		errmsg := Xc.Errmsg(*resp)
+		var res string
+		if len(errmsg) < 1 {
+			res = "Unknown Err"
+		} else {
+			res = errmsg
+		}
 		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite,
-			Xc.Errmsg(*resp),
+			res,
 		)
 	}
 
@@ -277,11 +290,11 @@ func (Xc *Config) Friend(Token string, username string, discrim string) {
 	Xc.Errs(err)
 
 	if resp.StatusCode == 204|200 {
-		fmt.Println("" + grn + "▏(" + grn + "+" + r + ") Sent Friend Request To: " +
+		fmt.Println("" + grn + "▏ " + r + "(" + grn + "+" + r + ") Sent Friend Request To: " +
 			username + "#" + discrim,
 		)
 	} else {
-		fmt.Println("" + grn + "▏(" + grn + "+" + r + ") Failed To Friend Request: " +
+		fmt.Println("" + grn + "▏ " + r + "(" + grn + "+" + r + ") Failed To Friend Request: " +
 			username + "#" + discrim,
 		)
 	}
