@@ -245,29 +245,40 @@ func (Xc *Config) Config() Config {
 	return config
 }
 
-func (Xc *Config) Konfig() Config {
-	var config Config
-	conf, err := os.Open("config.json")
-	defer conf.Close()
-	config.Errs(err)
-	xp := json.NewDecoder(conf)
-	xp.Decode(&config)
-	return config
-}
 
 func (Xc *Config) GetCookie() string {
-	return cookies()
+	var cook string
+	go func() { cook = cookies() }()
+	return cook
 }
 
 func (Xc *Config) ReadFile(files string) ([]string, error) {
+
 	file, err := os.Open(files)
 	Xc.Errs(err)
 	defer file.Close()
-	var lines []string
+	var value bool
+	var lines, tokens []string
 	scanner := bufio.NewScanner(file)
+
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
+
+	if strings.Contains(files, "token") {
+		for i := 0; i < len(lines); i++ {
+			if strings.Contains(lines[i], ":") {
+				format := strings.Split(lines[i], ":")
+				tokens = append(tokens, format[2])
+				value = true
+			}
+		}
+		if value {
+			lines = nil
+			lines = tokens
+		}
+	}
+
 	return lines, scanner.Err()
 }
 
