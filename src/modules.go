@@ -57,10 +57,12 @@ func ReadBody(resp http.Response) ([]byte, error) {
 }
 
 func (Xc *Config) Captcha(WebKey string) (cap string) {
-	switch Xc.Config().Mode.Discord.Service {
-	case "capmonster":
+
+	service := Xc.Config().Mode.Discord.CapAPI[0]
+
+	if service == "capmonster" || service == "Capmonster" || service == "CAPMONSTER" {
 		cap = Xc.Capmonster_Solve(WebKey)
-	case "2captcha":
+	} else if service == "2captcha" || service == "2Captcha" || service == "2CAPTCHA" {
 		cap = Xc.TwoCaptcha_Solve(WebKey)
 	}
 
@@ -68,11 +70,19 @@ func (Xc *Config) Captcha(WebKey string) (cap string) {
 }
 
 func (Xc *Config) TwoCaptcha_Solve(WebKey string) (cap string) {
-	url := "http://2captcha.com/in.php?key=" + Xc.Config().Mode.Discord.ApiKey + "&method=hcaptcha&sitekey=" + WebKey + "&pageurl=https://discord.com"
-	resp, err := xhttp.Get(url)
+	url := "http://2captcha.com/in.php?key=" + Xc.Config().Mode.Discord.CapAPI[1] + "&method=hcaptcha&sitekey=" + WebKey + "&pageurl=https://discord.com"
+	req, err := http.NewRequest("GET", url, nil)
 	Xc.Errs(err)
+
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	Xc.Errs(err)
+
 	if resp.StatusCode == 200 {
-		fmt.Println(resp)
+		fmt.Println(resp, string(body))
 	} else {
 		fmt.Println("Somethign Whent wrong: ", resp)
 	}
@@ -80,7 +90,7 @@ func (Xc *Config) TwoCaptcha_Solve(WebKey string) (cap string) {
 }
 
 func (Xc *Config) Capmonster_Solve(WebKey string) (cap string) {
-	Key := Xc.Config().Mode.Discord.ApiKey
+	Key := Xc.Config().Mode.Discord.CapAPI[1]
 	payload := map[string]interface{}{
 		"clientKey": Key,
 		"task": map[string]interface{}{
@@ -233,11 +243,20 @@ func (Xc *Config) Config() Config {
 	xp := json.NewDecoder(conf)
 	xp.Decode(&config)
 	return config
+}
 
+func (Xc *Config) Konfig() Config {
+	var config Config
+	conf, err := os.Open("config.json")
+	defer conf.Close()
+	config.Errs(err)
+	xp := json.NewDecoder(conf)
+	xp.Decode(&config)
+	return config
 }
 
 func (Xc *Config) GetCookie() string {
-	return "__dcfduid=" + cookies().Dcfd + "; " + "__sdcfduid=" + cookies().Sdcfd + "; "
+	return cookies()
 }
 
 func (Xc *Config) ReadFile(files string) ([]string, error) {
@@ -260,28 +279,40 @@ func (Xc *Config) WriteFile(files string, item string) {
 	Xc.Errs(ers)
 }
 
-func cookies() Config {
+func cookies() (Cookies string) {
 	Xc := Config{}
 
+	cookie := []*http.Cookie{}
 	req, err := http.NewRequest("GET", "https://discord.com", nil)
 	Xc.Errs(err)
+
 	resp, er := Client.Do(req)
 	Xc.Errs(er)
 	defer resp.Body.Close()
-	Cookie := Config{}
-	if resp.Cookies() != nil {
-		for _, cookie := range resp.Cookies() {
-			if cookie.Name == "__dcfduid" {
-				Cookie.Dcfd = cookie.Value
-			}
-			if cookie.Name == "__sdcfduid" {
-				Cookie.Sdcfd = cookie.Value
-			}
-		}
-	} else {
+
+	if resp.Cookies() == nil {
 		cookies()
 	}
-	return Cookie
+
+	cookie = append(cookie, resp.Cookies()...)
+	for i := 0; i < len(cookie); i++ {
+		if i == len(cookie)-1 {
+			Cookies += fmt.Sprintf(`%s=%s`,
+				cookie[i].Name,
+				cookie[i].Value,
+			)
+		} else {
+			Cookies += fmt.Sprintf(`%s=%s; `,
+				cookie[i].Name,
+				cookie[i].Value,
+			)
+		}
+	}
+	if !strings.Contains(Cookies, "locale=en-US; ") {
+		Cookies += "; locale=en-US "
+	}
+
+	return Cookies
 }
 
 func (Xc *Config) CfBm() (string, error) {
