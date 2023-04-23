@@ -46,10 +46,10 @@ func MassDm(message string) {
 				c.Errs(err)
 
 				if c.Config().Settings.Close == true {
-					c.CloseDm(CID, Token[i], massdm.Cookies)
+					c.CloseDm(CID, Token[i], massdm.Cookie)
 				}
 				if c.Config().Settings.Block == true {
-					c.Block(ID, Token[i], massdm.Cookies)
+					c.Block(ID, Token[i], massdm.Cookie)
 				}
 			}
 		}(i)
@@ -89,14 +89,14 @@ func Join(invite string) {
 	var wg goccm.ConcurrencyManager
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
-	interval := c.Config().Mode.Configs.Interval
+	interval := c.Config().Mode.Interval.Intjoiner
 	if interval > 0 {
 		for i := 0; i < len(Token); i++ {
 			time.Sleep(time.Duration(interval) * time.Second)
 			if c.Config().Settings.Websock == true {
 				c.WebSock(Token[i])
 			}
-			c.Joiner(Token[i], invite, "", "")
+			c.Joiner(Token[i], invite, "", "", 0)
 
 		}
 		Return()
@@ -113,7 +113,7 @@ func Join(invite string) {
 				if c.Config().Settings.Websock == true {
 					c.WebSock(Token[i])
 				}
-				c.Joiner(Token[i], invite, "", "")
+				c.Joiner(Token[i], invite, "", "", 0)
 			}(i)
 		}
 		wg.WaitAllDone()
