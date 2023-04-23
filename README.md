@@ -44,7 +44,8 @@ https://github.com/YABOIpy/Go-MassDM/releases
 ```md
 Needs & Inputs:
 
-tokens can be in mail:pass:token format and token format
+tokens can be in mail:pass:token format
+or only token format
 just make sure theyre inside tokens.txt and the separator is ":"
 ________________________________________________
   [1] Message and Scraped Ids in ids.txt
