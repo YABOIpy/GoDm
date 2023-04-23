@@ -15,9 +15,8 @@ import (
 )
 
 var (
-	c  = massdm.X()
-	s  = Scraper.X()
-	wg = goccm.New(300)
+	c = massdm.X()
+	s = Scraper.X()
 )
 
 func MassDm(message string) {
@@ -60,6 +59,8 @@ func Spam_Dm(UserID string, message string) {
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
+	wg = goccm.New(300)
+	
 	ID, _ := strconv.Atoi(UserID)
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -83,6 +84,9 @@ func Join(invite string) {
 	var wg goccm.ConcurrencyManager
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
+	
+	wg = goccm.New(300)
+	
 	interval := c.Config().Mode.Interval.Intjoiner
 	if interval > 0 {
 		for i := 0; i < len(Token); i++ {
@@ -117,6 +121,7 @@ func Leave(ID string) {
 	c.Errs(err)
 
 	var wg goccm.ConcurrencyManager
+	wg = goccm.New(300)
 
 	for i := 0; i < len(Token); i++ {
 		go func(i int) {
@@ -184,6 +189,7 @@ func Reac(link string) {
 	c.Errs(err)
 
 	var wg goccm.ConcurrencyManager
+	wg = goccm.New(300)
 
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -205,6 +211,7 @@ func Rules(invite string, ID string) {
 	c.Errs(err)
 
 	var wg goccm.ConcurrencyManager
+	wg = goccm.New(300)
 
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -221,10 +228,12 @@ func Rules(invite string, ID string) {
 }
 
 func Raid(message string, ID string) {
-
-	var wg goccm.ConcurrencyManager
+	
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
+
+	var wg goccm.ConcurrencyManager
+	wg = goccm.New(300)
 
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -246,6 +255,7 @@ func Friend(user string) {
 	c.Errs(err)
 
 	var wg goccm.ConcurrencyManager
+	wg = goccm.New(300)
 
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -279,6 +289,7 @@ func Ping(message string, amount int, ID string) {
 	c.Errs(err)
 
 	var wg goccm.ConcurrencyManager
+	wg = goccm.New(300)
 
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -300,6 +311,7 @@ func Click(GID string, CID string, MID string, BotID string, Type int, Comp int,
 	c.Errs(err)
 
 	var wg goccm.ConcurrencyManager
+	wg = goccm.New(300)
 
 	x, _ := strconv.Atoi(strconv.Itoa(Type))
 	s, _ := strconv.Atoi(strconv.Itoa(Comp))
