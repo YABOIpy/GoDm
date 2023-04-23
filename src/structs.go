@@ -42,20 +42,22 @@ type Config struct {
 			Agent    string `json:"Agent"`
 		} `json:"Net"`
 		Discord struct {
-			CfbM    bool    `json:"CfBm"`
-			Version float64 `json:"Ver"`
-			Status  string  `json:"Status"`
-			AppID   string  `json:"AppID"`
-			RPC     bool    `json:"Presence"`
-			ApiKey  string  `json:"Api_Key"`
-			Service string  `json:"Service"`
+			CfbM    bool     `json:"CfBm"`
+			Version float64  `json:"Ver"`
+			Status  string   `json:"Status"`
+			AppID   string   `json:"AppID"`
+			RPC     bool     `json:"Presence"`
+			CapAPI  []string `json:"Cap_Api"`
 		} `json:"Discord"`
 		Configs struct {
-			Interval int  `json:"Interval"`
 			Errormsg bool `json:"Errors"`
 			Solver   bool `json:"SolveCaptcha"`
 			ErrorLog bool `json:"ErrorLog"`
 		} `json:"Config"`
+		Interval struct {
+			Intjoiner int `json:"joiner"`
+			IntRaider int `json:"raider"`
+		} `json:"Interval"`
 	} `json:"Modes"`
 
 	Con struct {
@@ -275,14 +277,16 @@ type XProperties struct {
 }
 
 var (
-	c       = X()
-	Hd      = Header{}
-	cfg     = Config{}
-	Cookies = c.GetCookie()
-	urls    = "https://discord.com/api/v9/users/@me/affinities/guilds"
-	grn     = "\033[32m"
-	yel     = "\033[33m"
-	red     = "\033[31m"
-	clr     = "\033[36m"
-	r       = "\033[39m"
+	c      = X()
+	Hd     = Header{}
+	cfg    = Config{}
+	Cookie = c.GetCookie()
+	urls   = "https://discord.com/api/v9/users/@me/affinities/guilds"
+	grn    = "\033[32m"
+	yel    = "\033[33m"
+	red    = "\033[31m"
+	clr    = "\033[36m"
+	bg     = "\033[1;30m"
+	br     = "\033[0m"
+	r      = "\033[39m"
 )
