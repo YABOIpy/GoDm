@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	c = massdm.X()
-	s = Scraper.X()
+	c  = massdm.X()
+	s  = Scraper.X()
+	wg = goccm.New(300)
 )
 
 func MassDm(message string) {
@@ -26,12 +27,6 @@ func MassDm(message string) {
 	c.Errs(err)
 	ids, err := c.ReadFile("ids.txt")
 	c.Errs(err)
-
-	if len(Token) > 300 {
-		wg = goccm.New(len(Token))
-	} else {
-		wg = goccm.New(300)
-	}
 
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -61,14 +56,13 @@ func MassDm(message string) {
 
 func Spam_Dm(UserID string, message string) {
 
+	var wg goccm.ConcurrencyManager
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
-
 	ID, _ := strconv.Atoi(UserID)
 	for i := 0; i < len(Token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			if c.Config().Settings.Websock == true {
@@ -81,7 +75,7 @@ func Spam_Dm(UserID string, message string) {
 			}
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 }
 
 func Join(invite string) {
@@ -101,11 +95,7 @@ func Join(invite string) {
 		}
 		Return()
 	} else {
-		if len(Token) > 300 {
-			wg = goccm.New(len(Token))
-		} else {
-			wg = goccm.New(300)
-		}
+
 		for i := 0; i < len(Token); i++ {
 			wg.Wait()
 			go func(i int) {
@@ -126,8 +116,7 @@ func Leave(ID string) {
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
+	var wg goccm.ConcurrencyManager
 
 	for i := 0; i < len(Token); i++ {
 		go func(i int) {
@@ -138,7 +127,7 @@ func Leave(ID string) {
 			c.Leaver(Token[i], ID)
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 	Return()
 }
 
@@ -194,10 +183,10 @@ func Reac(link string) {
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
+	var wg goccm.ConcurrencyManager
 
 	for i := 0; i < len(Token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			if c.Config().Settings.Websock == true {
@@ -206,7 +195,7 @@ func Reac(link string) {
 			c.React(Token[i], link)
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 	Return()
 }
 
@@ -215,10 +204,10 @@ func Rules(invite string, ID string) {
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
+	var wg goccm.ConcurrencyManager
 
 	for i := 0; i < len(Token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			if c.Config().Settings.Websock == true {
@@ -227,19 +216,18 @@ func Rules(invite string, ID string) {
 			c.Agree(Token[i], invite, ID)
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 	Return()
 }
 
 func Raid(message string, ID string) {
 
+	var wg goccm.ConcurrencyManager
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
-
 	for i := 0; i < len(Token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			if c.Config().Settings.Websock == true {
@@ -248,7 +236,7 @@ func Raid(message string, ID string) {
 			c.Raider(Token[i], message, ID)
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 }
 
 func Friend(user string) {
@@ -257,10 +245,10 @@ func Friend(user string) {
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
+	var wg goccm.ConcurrencyManager
 
 	for i := 0; i < len(Token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			if c.Config().Settings.Websock == true {
@@ -269,7 +257,7 @@ func Friend(user string) {
 			c.Friend(Token[i], username[0], username[1])
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 	Return()
 }
 
@@ -290,10 +278,10 @@ func Ping(message string, amount int, ID string) {
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
+	var wg goccm.ConcurrencyManager
 
 	for i := 0; i < len(Token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			if c.Config().Settings.Websock == true {
@@ -302,7 +290,7 @@ func Ping(message string, amount int, ID string) {
 			c.MassPing(Token[i], message, amount, ID)
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 	Return()
 
 }
@@ -311,8 +299,7 @@ func Click(GID string, CID string, MID string, BotID string, Type int, Comp int,
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
+	var wg goccm.ConcurrencyManager
 
 	x, _ := strconv.Atoi(strconv.Itoa(Type))
 	s, _ := strconv.Atoi(strconv.Itoa(Comp))
@@ -323,12 +310,13 @@ func Click(GID string, CID string, MID string, BotID string, Type int, Comp int,
 		Comp = 2
 	}
 	for i := 0; i < len(Token); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
 			c.Buttons(Token[i], GID, CID, MID, BotID, Type, Comp, Text)
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 
 	Return()
 }
