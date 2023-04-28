@@ -136,7 +136,7 @@ func (Xc *Config) Dm_Spam(ID string, Token string, Msg string) {
 	Xc.Dm(ID, Token, Msg, Cookie)
 }
 
-func (Xc *Config) Joiner(Token string, invite string, cap string, captoken string, ccount int) {
+func (Xc *Config) Joiner(Token string, invite string, cap string, captoken, session string, ccount int) {
 
 	var payload map[string]string
 	var capcount string
@@ -144,10 +144,10 @@ func (Xc *Config) Joiner(Token string, invite string, cap string, captoken strin
 		payload = map[string]string{
 			"captcha_key":     cap,
 			"captcha_rqtoken": captoken,
-			"session_id": Xc.Socket(Token).Data.SessionID,
+			"session_id":      session,
 		}
 	} else {
-		payload = map[string]string{"session_id": Xc.Socket(Token).Data.SessionID}
+		payload = map[string]string{"session_id": session}
 	}
 
 	req, err := http.NewRequest("POST",
@@ -185,7 +185,7 @@ func (Xc *Config) Joiner(Token string, invite string, cap string, captoken strin
 			cap := Xc.Captcha(data.SiteKey)
 			captoken := data.RqToken
 			ccount++
-			Xc.Joiner(Token, invite, cap, captoken, ccount)
+			Xc.Joiner(Token, invite, cap, captoken, session, ccount)
 		} else {
 			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
 		}
