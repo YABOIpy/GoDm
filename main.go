@@ -55,12 +55,12 @@ func MassDm(message string) {
 
 func Spam_Dm(UserID string, message string) {
 
-	var wg goccm.ConcurrencyManager
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
+	var wg goccm.ConcurrencyManager
 	wg = goccm.New(300)
-	
+
 	ID, _ := strconv.Atoi(UserID)
 	for i := 0; i < len(Token); i++ {
 		wg.Wait()
@@ -82,32 +82,32 @@ func Spam_Dm(UserID string, message string) {
 func Join(invite string) {
 
 	var wg goccm.ConcurrencyManager
+	var session string
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
-	
+
 	wg = goccm.New(300)
-	
+
 	interval := c.Config().Mode.Interval.Intjoiner
 	if interval > 0 {
 		for i := 0; i < len(Token); i++ {
 			time.Sleep(time.Duration(interval) * time.Second)
 			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
+				session = c.Socket(Token[i]).Data.SessionID
 			}
-			c.Joiner(Token[i], invite, "", "", 0)
+			c.Joiner(Token[i], invite, "", "", session, 0)
 
 		}
 		Return()
 	} else {
-
 		for i := 0; i < len(Token); i++ {
 			wg.Wait()
 			go func(i int) {
 				defer wg.Done()
 				if c.Config().Settings.Websock == true {
-					c.WebSock(Token[i])
+					session = c.Socket(Token[i]).Data.SessionID
 				}
-				c.Joiner(Token[i], invite, "", "", 0)
+				c.Joiner(Token[i], invite, "", "", session, 0)
 			}(i)
 		}
 		wg.WaitAllDone()
@@ -228,7 +228,7 @@ func Rules(invite string, ID string) {
 }
 
 func Raid(message string, ID string) {
-	
+
 	Token, err := c.ReadFile("tokens.txt")
 	c.Errs(err)
 
