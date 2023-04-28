@@ -245,10 +245,15 @@ func (Xc *Config) Config() Config {
 	return config
 }
 
+func (Xc *Config) LazyCookie() string {
+	var cook string
+	go func() { cook = cookies() }()
+	return cook
+}
 
 func (Xc *Config) GetCookie() string {
 	var cook string
-	go func() { cook = cookies() }()
+	cook = cookies()
 	return cook
 }
 
@@ -452,7 +457,7 @@ func (Xc *Config) Presence(Count int) {
 	client.SetActivity(client.Activity{
 		State:      "Bots Loaded:",
 		Details:    "Go Mass DM | github.com/YABOIpy",
-		LargeImage: "b51b78ecc9e5711274931774e433b5e6",
+		LargeImage: "godm_logo",
 		LargeText:  "https://github.com/yaboipy",
 		SmallImage: "go-logo",
 		SmallText:  "Ver " + fmt.Sprint(Xc.Config().Mode.Discord.Version),
