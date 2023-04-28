@@ -252,8 +252,7 @@ func (Xc *Config) LazyCookie() string {
 }
 
 func (Xc *Config) GetCookie() string {
-	var cook string
-	cook = cookies()
+	cook := cookies()
 	return cook
 }
 
