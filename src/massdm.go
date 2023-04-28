@@ -144,9 +144,10 @@ func (Xc *Config) Joiner(Token string, invite string, cap string, captoken strin
 		payload = map[string]string{
 			"captcha_key":     cap,
 			"captcha_rqtoken": captoken,
+			"session_id": Xc.Socket(Token).Data.SessionID,
 		}
 	} else {
-		payload = map[string]string{"": ""}
+		payload = map[string]string{"session_id": Xc.Socket(Token).Data.SessionID}
 	}
 
 	req, err := http.NewRequest("POST",
@@ -294,8 +295,8 @@ func (Xc *Config) Friend(Token string, username string, discrim string) {
 			username + "#" + discrim,
 		)
 	} else {
-		fmt.Println("" + grn + "▏ " + r + "(" + grn + "+" + r + ") Failed To Friend Request: " +
-			username + "#" + discrim,
+		fmt.Println(""+grn+"▏ "+r+"("+grn+"+"+r+") Failed To Friend Request: "+
+			username+"#"+discrim, Xc.Errmsg(*resp),
 		)
 	}
 
