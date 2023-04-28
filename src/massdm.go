@@ -1,287 +1,437 @@
 package massdm
 
 import (
-	"strconv"
-
+	"bytes"
+	"encoding/json"
+	"fmt"
 	http "github.com/Danny-Dasilva/fhttp"
+	"io/ioutil"
+	"math/rand"
+	shttp "net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
-func (Hd *Header) Head_Dm(req *http.Request, Token string) {
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             c.GetCookie(),
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
+func (Xc *Config) Dm(ID string, Token string, Msg string, Cookies string) {
+	payload := map[string]string{
+		"content": Msg,
+	}
+
+	req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages",
+		bytes.NewBuffer(Xc.Marsh(payload)),
+	)
+	Xc.Errs(err)
+
+	Hd.Head_Dm(req, Token)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	if resp.StatusCode == 200 {
+		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Sent Message To:"+clr+"", ID)
+	} else {
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed Sent Message To:"+clr+"", ID,
+			Xc.Errmsg(*resp),
+		)
 	}
 }
-func (Hd *Header) Head_CloseDm(req *http.Request, Token string) {
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             c.GetCookie(),
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
+
+func (Xc *Config) CloseDm(ID string, Token string, Cookies string) {
+	req, err := http.NewRequest("DELETE",
+		"https://discord.com/api/v9/channels/"+ID+"?silent=false",
+		nil,
+	)
+	Xc.Errs(err)
+
+	Hd.Head_CloseDm(req, Token)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	if resp.StatusCode == 200 {
+		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Closed Channel:"+clr+"", ID)
+	} else {
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Close Dm:"+clr+"", ID, "ERR |: ",
+			Xc.Errmsg(*resp),
+		)
+	}
+
+}
+
+func (Xc *Config) React(Token string, link string) {
+	payload := map[string]string{}
+	req, err := http.NewRequest("PUT",
+		link,
+		bytes.NewBuffer(
+			Xc.Marsh(payload),
+		),
+	)
+	Xc.Errs(err)
+
+	Hd.Head_React(req, Token)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	switch resp.StatusCode {
+	case 204:
+		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Added Emoji")
+	default:
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Add Emoji"+clr+"", "ERR |: "+r,
+			Xc.Errmsg(*resp),
+		)
 	}
 }
-func (Hd *Header) Head_React(req *http.Request, Token string) {
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             c.GetCookie(),
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
+
+func (Xc *Config) Create(ID int, Token string, Msg string) (string, error) {
+	payload := []byte("{\"recipients\":[\"" + strconv.Itoa(ID) + "\"]}")
+	req, err := http.NewRequest("POST", "https://discord.com/api/v9/users/@me/channels",
+		bytes.NewBuffer(payload),
+	)
+
+	Xc.Errs(err)
+
+	Hd.Head_Create(req, Token)
+	resp, err := Client.Do(req)
+
+	var flake ChannelID
+	if resp.StatusCode == 200 {
+		defer resp.Body.Close()
+		body, err := ReadBody(*resp)
+		Xc.Errs(err)
+		errx := json.Unmarshal(body, &flake)
+		Xc.Errs(errx)
+		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Created Channel:"+clr+"", flake.ID)
+		Xc.Dm(flake.ID, Token, Msg, Cookie)
+		return flake.ID, err
+
+	} else {
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Create Channel:",
+			Xc.Errmsg(*resp),
+		)
+	}
+	return flake.ID, err
+}
+
+func (Xc *Config) Block(ID int, Token string, Cookies string) {
+	p := map[string]string{"type": "2"}
+	req, err := http.NewRequest("PUT", "https://discord.com/api/v9/users/@me/relationships/"+strconv.Itoa(ID)+"",
+		bytes.NewBuffer(Xc.Marsh(p)),
+	)
+
+	Xc.Errs(err)
+
+	Hd.Head_Block(req, Token, ID)
+
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+	if resp.StatusCode == 204 {
+		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Blocked User:"+clr+"", ID)
+	} else {
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed To Block:"+clr+"", ID, "ERR |: ",
+			Xc.Errmsg(*resp),
+		)
 	}
 }
-func (Hd *Header) Head_Create(req *http.Request, Token string) {
-	for x, o := range map[string]string{
-		"accept":               "*/*",
-		"accept-encoding":      "gzip, deflate, br",
-		"accept-language":      "en-US,en-GB;q=0.9",
-		"authorization":        Token,
-		"content-type":         "application/json",
-		"cookie":               c.GetCookie(),
-		"origin":               "https://discord.com",
-		"referer":              "https://discord.com/channels/",
-		"sec-fetch-dest":       "empty",
-		"sec-fetch-mode":       "cors",
-		"sec-fetch-site":       "same-origin",
-		"user-agent":           "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-context-properties": "e30=",
-		"x-debug-options":      "bugReporterEnabled",
-		"x-discord-locale":     "en-US",
-		"x-super-properties":   "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
+
+func (Xc *Config) Dm_Spam(ID string, Token string, Msg string) {
+	Xc.Dm(ID, Token, Msg, Cookie)
 }
-func (Hd *Header) Head_Block(req *http.Request, Token string, ID int) {
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             c.GetCookie(),
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/@me/" + strconv.Itoa(ID) + "",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYwNjQ1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
-}
-func (Hd *Header) Head_Joiner(req *http.Request, Token string) {
-	for x, o := range map[string]string{
-		"accept":               "*/*",
-		"accept-encoding":      "gzip, deflate, br",
-		"accept-language":      "en-US,en-GB;q=0.9",
-		"authorization":        Token,
-		"content-type":         "application/json",
-		"cookie":               c.GetCookie(),
-		"origin":               "https://discord.com",
-		"referer":              "https://discord.com/channels/",
-		"sec-fetch-dest":       "empty",
-		"sec-fetch-mode":       "cors",
-		"sec-fetch-site":       "same-origin",
-		"user-agent":           "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-context-properties": "eyJsb2NhdGlvbiI6Ikludml0ZSBCdXR0b24gRW1iZWQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6bnVsbCwibG9jYXRpb25fY2hhbm5lbF9pZCI6IjEwOTc0NjI5MDc5OTE3NTY4MzAiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjEsImxvY2F0aW9uX21lc3NhZ2VfaWQiOiIxMTAxNjIzMjYyNTQwMjIyNTI1In0=",
-		"x-debug-options":      "bugReporterEnabled",
-		"x-discord-locale":     "en-US",
-		"x-super-properties":   "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDEyIiwib3NfdmVyc2lvbiI6IjEwLjAuMjI2MjEiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTkzOTA2LCJuYXRpdmVfYnVpbGRfbnVtYmVyIjozMjAyMCwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbCwiZGVzaWduX2lkIjowfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
-}
-func (Hd *Header) Head_Leaver(req *http.Request, Token string) {
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-GB;q=0.9",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             c.GetCookie(),
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNjg2LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
-}
-func (Hd *Header) Head_Agree(req *http.Request, Token string, val int) {
-	if val == 1 {
-		for x, o := range map[string]string{
-			"accept":             "*/*",
-			"accept-encoding":    "gzip, deflate, br",
-			"accept-language":    "en-US,en-GB;q=0.9",
-			"authorization":      Token,
-			"content-type":       "application/json",
-			"cookie":             c.GetCookie(),
-			"origin":             "https://discord.com",
-			"referer":            "https://discord.com/channels/",
-			"sec-fetch-dest":     "empty",
-			"sec-fetch-mode":     "cors",
-			"sec-fetch-site":     "same-origin",
-			"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-			"x-debug-options":    "bugReporterEnabled",
-			"x-discord-locale":   "en-US",
-			"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-		} {
-			req.Header.Set(x, o)
+
+func (Xc *Config) Joiner(Token string, invite string, cap string, captoken, session string, ccount int) {
+
+	var payload map[string]string
+	var capcount string
+	if len(cap) > 2 {
+		payload = map[string]string{
+			"captcha_key":     cap,
+			"captcha_rqtoken": captoken,
+			"session_id":      session,
 		}
 	} else {
-		for x, o := range map[string]string{
-			"accept":             "*/*",
-			"accept-encoding":    "gzip, deflate, br",
-			"accept-language":    "en-US,en-GB;q=0.9",
-			"authorization":      Token,
-			"content-type":       "application/json",
-			"cookie":             c.GetCookie(),
-			"origin":             "https://discord.com",
-			"referer":            "https://discord.com/channels/",
-			"sec-fetch-dest":     "empty",
-			"sec-fetch-mode":     "cors",
-			"sec-fetch-site":     "same-origin",
-			"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9007 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-			"x-debug-options":    "bugReporterEnabled",
-			"x-discord-locale":   "en-US",
-			"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-		} {
-			req.Header.Set(x, o)
+		payload = map[string]string{"session_id": session}
+	}
+
+	req, err := http.NewRequest("POST",
+		"https://discord.com/api/v9/invites/"+invite+"",
+		bytes.NewBuffer(
+			Xc.Marsh(
+				payload,
+			),
+		),
+	)
+	Xc.Errs(err)
+
+	Hd.Head_Joiner(req, Token)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	var data JoinResp
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(body, &data)
+	Xc.Errs(err)
+	
+	if resp.StatusCode == 200 {
+		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Joined "+clr+"discord.gg/"+invite, r)
+	} else if resp.StatusCode == 429 {
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" RateLimit", r)
+	} else if resp.StatusCode == 403 {
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Locked "+clr+"("+bg+strings.Split(Token, ".")[0]+br+clr+")", r)
+	} else if strings.Contains(string(body), "captcha_sitekey") {
+		if ccount >= 1 {
+			capcount = clr + "[" + bg + strconv.Itoa(ccount) + br + clr + "]" + r
+		}
+		if Xc.Config().Mode.Configs.Solver {
+			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Solving Captcha "+capcount+clr+"discord.gg/"+invite, r)
+			cap := Xc.Captcha(data.SiteKey)
+			captoken := data.RqToken
+			ccount++
+			Xc.Joiner(Token, invite, cap, captoken, session, ccount)
+		} else {
+			fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite, yel+" Captcha", r)
+		}
+	} else {
+		errmsg := Xc.Errmsg(*resp)
+		var res string
+		if len(errmsg) < 1 {
+			res = "Unknown Err"
+		} else {
+			res = errmsg
+		}
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Join "+clr+"discord.gg/"+invite,
+			res,
+		)
+	}
+
+}
+
+func (Xc *Config) Leaver(Token string, ID string) {
+	req, err := http.NewRequest("DELETE", "https://discord.com/api/v9/users/@me/guilds/"+ID+"",
+		bytes.NewBuffer(
+			Xc.Marsh(
+				map[string]string{"lurking": "false"},
+			),
+		),
+	)
+	Xc.Errs(err)
+
+	Hd.Head_Leaver(req, Token)
+
+	resp, err := Client.Do(req)
+	_ = err
+	if resp.StatusCode == 204 {
+		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Left Server")
+	} else {
+		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Leave "+clr+ID,
+			Xc.Errmsg(*resp),
+		)
+	}
+}
+
+func (Xc *Config) Agree(Token string, invite string, ID string) {
+	req, err := http.NewRequest("POST",
+		"https://discord.com/api/v9/guilds/"+ID+"/member-verification?with_guild=false&invite_code="+invite+"",
+		nil,
+	)
+	Xc.Errs(err)
+
+	Hd.Head_Agree(req, Token, 1)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	defer resp.Body.Close()
+	body, ers := ReadBody(*resp)
+	Xc.Errs(ers)
+
+	var data Bypass
+	err = json.Unmarshal(body, &data)
+	Xc.Errs(err)
+
+	for i := 0; i < len(data.FormFields); i++ {
+		data.FormFields[i].Response = true
+	}
+
+	payload, _ := json.Marshal(data)
+	reqs, er := http.NewRequest("POST", "https://discord.com/api/v9/guilds/"+ID+"/requests/@me",
+		bytes.NewBuffer(
+			payload,
+		),
+	)
+	Xc.Errs(er)
+
+	Hd.Head_Agree(reqs, Token, 0)
+	resps, es := Client.Do(reqs)
+	_ = es
+	if resps.StatusCode == 201 {
+		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Verified Token")
+	} else {
+		fmt.Println(""+red+"▏"+r+"("+red+"-"+r+") Failed",
+			Xc.Errmsg(*resp),
+		)
+	}
+
+}
+
+func (Xc *Config) Friend(Token string, username string, discrim string) {
+
+	req, err := http.NewRequest("POST",
+		"https://discord.com/api/v9/users/@me/relationships",
+		bytes.NewBuffer(
+			Xc.Marsh(
+				map[string]string{
+					"username":      username,
+					"discriminator": discrim,
+				},
+			),
+		),
+	)
+	Xc.Errs(err)
+
+	Hd.Head_Friend(req, Token)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	if resp.StatusCode == 204|200 {
+		fmt.Println("" + grn + "▏ " + r + "(" + grn + "+" + r + ") Sent Friend Request To: " +
+			username + "#" + discrim,
+		)
+	} else {
+		fmt.Println(""+grn+"▏ "+r+"("+grn+"+"+r+") Failed To Friend Request: "+
+			username+"#"+discrim, Xc.Errmsg(*resp),
+		)
+	}
+
+}
+
+func (Xc *Config) Check(token string) int {
+	req, err := shttp.NewRequest("GET", urls, nil)
+	Xc.Errs(err)
+
+	req.Header.Set("authorization", token)
+
+	sClient := &shttp.Client{}
+	resp, err := sClient.Do(req)
+	Xc.Errs(err)
+
+	if resp.StatusCode == 200 {
+		fmt.Println(""+grn+"▏ "+r+"("+grn+"✓"+r+") ("+grn+"+"+r+"):", token[:50]+"...")
+		Xc.Checker.Valid++
+
+	} else if resp.StatusCode == 403 {
+		fmt.Println(""+yel+"▏ "+r+"("+yel+"/"+r+"):", token[:50]+"...")
+		Xc.Checker.Locked++
+	} else {
+		fmt.Println(""+red+"▏ "+r+"("+red+"x"+r+"):", token[:50]+"...")
+		Xc.Checker.Invalid++
+	}
+
+	Xc.Checker.All++
+	return resp.StatusCode
+}
+
+func (Xc *Config) Buttons(Token string, GID string, CID string, MID string, BotID string, Type int, Comp int, Text string) {
+
+	req, err := http.NewRequest("POST",
+		"https://discord.com/api/v9/interactions",
+		strings.NewReader(
+			string(
+				Xc.Marsh_btn(
+					map[string]interface{}{
+						"application_id": BotID,
+						"channel_id":     CID,
+						"data": map[string]interface{}{
+							"component_type": Comp,
+							"custom_id":      Text,
+						},
+						"guild_id":      GID,
+						"message_flags": 0,
+						"message_id":    MID,
+						"type":          Type,
+						"session_id":    Xc.Socket(Token).Data.SessionID,
+					},
+				),
+			),
+		),
+	)
+
+	Xc.Errs(err)
+
+	Hd.Head_Button(req, Token, GID, CID)
+	resp, err := Client.Do(req)
+	Xc.Errs(err)
+
+	if resp.StatusCode == 204|200 {
+		fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Clicked Button ")
+	} else if resp.StatusCode == 429 {
+		fmt.Println(""+yel+"▏"+r+"("+yel+"+"+r+") Failed To Click Button "+yel+" RateLimit", r)
+	} else {
+		fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Click Button | Err: ", Xc.Errmsg(*resp))
+	}
+
+}
+
+func (Xc *Config) Raider(Token string, message string, ID string) {
+	for true {
+
+		req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages",
+			bytes.NewBuffer(
+				Xc.Marsh(map[string]string{
+					"content": message,
+				}),
+			),
+		)
+		Xc.Errs(err)
+
+		Hd.Head_Raider(req, Token, ID)
+		resp, ers := Client.Do(req)
+		_ = ers
+		if resp.StatusCode == 200 {
+			fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Sent Message")
+		} else if resp.StatusCode == 429 {
+			fmt.Println("" + yel + "▏" + r + "(" + yel + "+" + r + ") RateLimit")
+		} else {
+			fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Send:",
+				Xc.Errmsg(*resp),
+			)
 		}
 	}
 }
 
-func (Hd *Header) Head_Friend(req *http.Request, Token string) {
-	for x, o := range map[string]string{
-		"accept":               "*/*",
-		"accept-encoding":      "gzip, deflate, br",
-		"accept-language":      "en-US,en-NL;q=0.9,en-GB;q=0.8",
-		"authorization":        Token,
-		"content-type":         "application/json",
-		"cookie":               c.GetCookie(),
-		"origin":               "https://discord.com",
-		"referer":              "https://discord.com/channels/@me/",
-		"sec-fetch-dest":       "empty",
-		"sec-fetch-mode":       "cors",
-		"sec-fetch-site":       "same-origin",
-		"user-agent":           "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-context-properties": "eyJsb2NhdGlvbiI6IkFkZCBGcmllbmQifQ==", //(ױk'{"location":"Add Friend"}
-		"x-debug-options":      "bugReporterEnabled",
-		"x-discord-locale":     "en-US",
-		"x-super-properties":   "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
+func (Xc *Config) MassPing(Token string, Message string, Amount int, ID string) {
+	for true {
+		var msg string
+		rand.Seed(time.Now().Unix())
+		users, _ := Xc.ReadFile("ids.txt")
+		for i := 0; i < Amount; i++ {
+
+			ping := users[rand.Intn(len(users))]
+			msg += "<@" + ping + ">"
+		}
+
+		req, err := http.NewRequest("POST", "https://discord.com/api/v9/channels/"+ID+"/messages",
+			bytes.NewBuffer(
+				Xc.Marsh(map[string]string{
+					"content": Message + " " + msg,
+				}),
+			),
+		)
+		Xc.Errs(err)
+
+		Hd.Head_MassPing(req, Token, ID)
+		resp, ers := Client.Do(req)
+		Xc.Errs(ers)
+		if resp.StatusCode == 200 {
+			fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Sent Message")
+		} else if resp.StatusCode == 429 {
+			fmt.Println("" + yel + "▏" + r + "(" + yel + "+" + r + ") RateLimit")
+		} else {
+			fmt.Println(""+red+"▏"+r+"("+red+"+"+r+") Failed To Send:",
+				Xc.Errmsg(*resp),
+			)
+		}
 	}
 }
 
-func (Hd *Header) Head_Raider(req *http.Request, Token string, ID string) {
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-NL;q=0.9,en-GB;q=0.8",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             c.GetCookie(),
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/@me/" + ID + "",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
-}
-func (Hd *Header) Head_MassPing(req *http.Request, Token string, ID string) {
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-NL;q=0.9,en-GB;q=0.8",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             c.GetCookie(),
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/@me/" + ID + "",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
-}
-func (Hd *Header) Head_Button(req *http.Request, Token string, GID string, CID string) {
-	for x, o := range map[string]string{
-		"accept":             "*/*",
-		"accept-encoding":    "gzip, deflate, br",
-		"accept-language":    "en-US,en-NL;q=0.9,en-GB;q=0.8",
-		"authorization":      Token,
-		"content-type":       "application/json",
-		"cookie":             c.GetCookie(),
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/channels/" + GID + "/" + CID + "",
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-		"x-debug-options":    "bugReporterEnabled",
-		"x-discord-locale":   "en-US",
-		"x-super-properties": "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDA3Iiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTYyNzg4LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==",
-	} {
-		req.Header.Set(x, o)
-	}
+func X() Config {
+	x := Config{}
+	return x
 }
