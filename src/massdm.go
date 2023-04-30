@@ -6,6 +6,7 @@ import (
 	"fmt"
 	http "github.com/Danny-Dasilva/fhttp"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	shttp "net/http"
 	"strconv"
@@ -164,12 +165,15 @@ func (Xc *Config) Joiner(Token string, invite string, cap string, captoken, sess
 	resp, err := Client.Do(req)
 	Xc.Errs(err)
 
-	var data JoinResp
 	defer resp.Body.Close()
+	var data JoinResp
 	body, err := ioutil.ReadAll(resp.Body)
-	json.Unmarshal(body, &data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = json.Unmarshal(body, &data)
 	Xc.Errs(err)
-	
+
 	if resp.StatusCode == 200 {
 		fmt.Println(""+grn+"▏"+r+"("+grn+"+"+r+") Joined "+clr+"discord.gg/"+invite, r)
 	} else if resp.StatusCode == 429 {
@@ -384,6 +388,7 @@ func (Xc *Config) Raider(Token string, message string, ID string) {
 		Hd.Head_Raider(req, Token, ID)
 		resp, ers := Client.Do(req)
 		_ = ers
+		
 		if resp.StatusCode == 200 {
 			fmt.Println("" + grn + "▏" + r + "(" + grn + "+" + r + ") Sent Message")
 		} else if resp.StatusCode == 429 {
