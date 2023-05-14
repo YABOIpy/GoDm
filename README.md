@@ -1,5 +1,7 @@
 # GoDm
 coming soon star for updates!
+godm is still in beta so it will likely be unstable
+a big update will come soon which will fix these issues
 
 # https://yabois-organization.gitbook.io/godm/
 
