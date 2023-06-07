@@ -3,6 +3,8 @@ coming soon star for updates!
 godm is still in beta so it will likely be unstable
 a big update will come soon which will fix these issues
 
+i will recode it
+
 # https://yabois-organization.gitbook.io/godm/
 
 
