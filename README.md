@@ -171,7 +171,6 @@ fix some of the hardcoded headers
 randomized ws data
 interval for all functions inside config
 more captcha api
-mutexes for ratelmits
 
 ```
 
