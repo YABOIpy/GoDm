@@ -14,7 +14,7 @@ the functions are still in development
 # About
 <p align="center" style="text-align: center"> 
   <img src="https://sloc.xyz/github/yaboipy/godm/">
-  <img src="https://img.shields.io/github/downloads/yaboipy/godm/total?color=green&label=users">
+  <img src="https://img.shields.io/github/downloads/yaboipy/godm/total?color=green&label=Release Downloads">
 </p>
 
 
