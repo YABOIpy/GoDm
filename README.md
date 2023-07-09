@@ -1,7 +1,7 @@
 # GoDm
 coming soon star for updates!
 
-# Hang in Thight! the new update will be here soon and its faster than ever.
+# Hang in Tight! the new update will be here soon and its faster than ever.
 
 # https://yabois-organization.gitbook.io/godm/
 
