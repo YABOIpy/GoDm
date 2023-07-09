@@ -1,9 +1,7 @@
 # GoDm
 coming soon star for updates!
-godm is still in beta so it will likely be unstable
-a big update will come soon which will fix these issues
 
-i will recode it
+Hang in Thight! the new update will be here soon and its faster than ever.
 
 # https://yabois-organization.gitbook.io/godm/
 
