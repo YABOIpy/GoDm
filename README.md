@@ -14,11 +14,9 @@ the functions are still in development
   <img src="https://img.shields.io/github/downloads/yaboipy/godm/total?color=green&label=Release Downloads">
 </p>
 
-
-
-![image](https://user-images.githubusercontent.com/110062350/222306213-a9d43e89-1a1e-4315-ae02-5d562664d53e.png)
-
-
+<p align="center" style="text-align: center"> 
+  <img width="900" alt="image" src="https://github.com/YABOIpy/GoDm/assets/110062350/3c0c725d-f002-4b31-be46-2fa7ba148a04">
+</p>
 # Issues
 ```md
 > Specify which Function
