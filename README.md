@@ -107,7 +107,7 @@ Recommended Config:
 **Config**
 | Name | Type | Description | 
 | ---  | ---  | ---         |
-| `Interval` | CONFIG | Time-[sec] before iterating 0 = instant iteration
+| `Interval` | CONFIG | Global Time-[sec] before iterating 0 = instant iteration
 | `SolveCaptcha` | CAPTCHA | Solves The Capthca Using Api
 | `CCManager` | PROCESS | False will have no limit to MaxRountines
 | `MaxRoutines` | PROCESS | The Max ammount of Concurrent WaitGroups allowed to run
