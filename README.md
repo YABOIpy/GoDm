@@ -18,6 +18,12 @@ coming soon star for updates!
   <img width="900" alt="image" src="https://github.com/YABOIpy/GoDm/assets/110062350/3c0c725d-f002-4b31-be46-2fa7ba148a04">
 </p>
 
+
+# How
+What Happens Behind GoDm
+![image](https://github.com/YABOIpy/GoDm/assets/110062350/7b096cf5-9b88-46eb-8b1f-fd785c8cb2a7)
+
+
 # Usage
 
 Go Not installed? 
@@ -47,11 +53,6 @@ ________________________________________________
 ________________________________________________
 
 ```
-
-# How
-
-![image](https://github.com/YABOIpy/GoDm/assets/110062350/7b096cf5-9b88-46eb-8b1f-fd785c8cb2a7)
-
 
 # Config
 
