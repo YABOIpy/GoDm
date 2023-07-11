@@ -117,7 +117,7 @@ Recommended Config:
 | Name | Type | Description | 
 | ---  | ---  | ---         |
 | `JA3` | TLS | TLS Fingerprint can be left as is
-| `Proxy` | HTTP | Your Proxy address Format: 'username:password@hostname:port
+| `Proxy` | HTTP | Your Proxy address Format: username:password@hostname:port
 | `Redirect` | HTTP | specifies the policy for handling redirects
 | `Agent` | HEADER | UserAgent To fall back on
 | `TimeOut` | HTTP | Time-[sec] after request with no response, allowed 0 = no timeout
