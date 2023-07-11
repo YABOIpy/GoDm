@@ -36,6 +36,7 @@ Needs & Inputs:
 > tokens can be in mail:pass:token format or only token format
 > just make sure theyre inside tokens.txt and the separator is ":"
 ________________________________________________
+  [0] Refreshes GoDm
   [1] Message and Scraped Ids in ids.txt
   [2] victims User ID
   [3] Channel ID & Message ID
