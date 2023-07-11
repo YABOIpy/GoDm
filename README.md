@@ -17,12 +17,6 @@ the functions are still in development
 <p align="center" style="text-align: center"> 
   <img width="900" alt="image" src="https://github.com/YABOIpy/GoDm/assets/110062350/3c0c725d-f002-4b31-be46-2fa7ba148a04">
 </p>
-# Issues
-```md
-> Specify which Function
-> Show a Screenshot
-> note the config u had 
-```
 
 # Usage
 
@@ -100,37 +94,28 @@ Recommended Config:
 **Discord**
 | Name | Type | Description | 
 | ---  | ---  | ---         |
-| `CfBm` | HEADER | Discord Clourdflare Cookie 
-| `Service` | CAPTCHA | Captcha Service for Api Captcha solver
-| `Api_Key` | CAPTCHA | Api Key for the Captcha Service
+| `CapApi` | CAPTCHA | Supported Captcha Service & Api Captcha solver
 | `Ver` | CONFIG | GoDm Client Version
-| `AppID` | CONFIG | Discord Application ID 
-| `Presence` | CONFIG | Discord RPC Client
 
 
 **Config**
 | Name | Type | Description | 
 | ---  | ---  | ---         |
-| `Interval` | CONFIG | The Time in Seconds before iterating 0 = instant iteration
-| `Errors` | ERRORS | Shows you the error from the request
+| `Interval` | CONFIG | Time-[sec] before iterating 0 = instant iteration
 | `SolveCaptcha` | CAPTCHA | Solves The Capthca Using Api
-| `ErrorLog` | ERRORS | Logs Errors inside errors.txt
+| `CCManager` | PROCESS | False will have no limit to MaxRountines
+| `MaxRoutines` | PROCESS | The Max ammount of Concurrent WaitGroups allowed to run
+| `RateLimit` | ANTI | Will Safely stop for if it encounnters a ratelimit and go after its over
 
 **Client**
 | Name | Type | Description | 
 | ---  | ---  | ---         |
-| `JA3` | SSL/TLS | TLS Fingerprint can be left as is
+| `JA3` | TLS | TLS Fingerprint can be left as is
 | `Proxy` | HTTP | Your Proxy address Format: 'username:password@hostname:port
 | `Redirect` | HTTP | specifies the policy for handling redirects
-| `Agent` | HEADER | UserAgent for the http client
-| `TimeOut` | HTTP | Time-[s] after request with no response, allowed 0 = no timeout
+| `Agent` | HEADER | UserAgent To fall back on
+| `TimeOut` | HTTP | Time-[sec] after request with no response, allowed 0 = no timeout
 
-**MassDm**
-| Name | Type | Description | 
-| ---  | ---  | ---         |
-| `WebSocket` | ADDON | Connect to discord wss before sending requests
-| `Block_Usr` | ADDON | Block the User after sending them a message
-| `Close_Dm` | ADDON | Close Dm after sendinf them a message
 </p>
 
 # Donations
@@ -146,6 +131,14 @@ Thanks Alot to the users who use GoDm
 
 i appreciate it and enjoy making these projects for you to use
 ________________________
+
+# Issues
+```md
+> Specify which Function
+> Show a Screenshot
+> note the config u had 
+```
+
 # TODO
 ```
 dynamic Ja3 Fingerprinting
