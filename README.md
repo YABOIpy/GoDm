@@ -6,7 +6,7 @@ coming soon star for updates!
 
 # OverView
 - [Introduction](#Usage)
-- [howitworks](#How)
+- [How](#How)
 - [Configuration](#Config)
 - [Donate](#Donations)
 
@@ -28,6 +28,8 @@ What Happens Behind GoDm
 
 
 # Usage
+golang can be installed at: https://go.dev
+version 1.20+
 
 Go Not installed? 
 Download Compiled Version:
