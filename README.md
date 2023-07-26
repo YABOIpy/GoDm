@@ -5,7 +5,10 @@ coming soon star for updates!
 # Hang in Tight! the new update will be here soon and its faster than ever.
 
 # OverView
-
+- [Introduction](#Usage)
+- [howitworks](#How)
+- [Configuration](#Config)
+- [Donate](#Donations)
 
 # About
 
