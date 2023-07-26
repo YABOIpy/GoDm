@@ -52,7 +52,7 @@ ________________________________________________
   [10] Channeld ID And Amount To ping in a single message 
   [11] Server ID Channel ID Message ID and Bot user ID
   [12] Full Username / USER#0000
-  [13] email:pass:token format
+  [13] email:pass:token format / 4 options
   [14] Nitro Tokens in tokens.txt and server ID
 ________________________________________________
 
@@ -77,24 +77,37 @@ Recommended Config:
 ```json
 {
   "Modes": {
-    "Discord": {
-      "Ver": 2.0,
-      "CapApi": ["your-captcha-service", "your-captcha-api-key"]
-    },
     "Config": {
       "Interval": 0,
       "CCManager": false,
       "MaxRoutines": 300,
-      "SolveCaptcha": true,
+      "SolveCaptcha": false,
+      "CaptchaRetry": 2,
       "RateLimit": true
     },
     "Net": {
-      "JA3": "771,4866-4867-4865-52393-49188-49199-158-49191-49200-49192-107-159-52392-49195-103-49196-49187-255,0-11-10-35-16-22-23-13-43-45-51-21,29-23-30-25-24,0-1-2",
+      "JA3": "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,35-51-13-17513-45-10-65281-0-11-27-16-23-18-5-43,29-23-24,0",
       "Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-      "Proxy": "your-proxy-url",
+      "Proxy": "your-proxy-address",
       "WebKit": "537.36",
       "Redirect": false,
       "TimeOut": 50
+    },
+    "Discord": {
+      "Ver": 2.0,
+      "CapApi": ["captcha-service", "service-api-key"],
+      "Message": [
+        {
+          "Title": "# Hey!",
+          "Body": "> This Message Was sent using",
+          "Link": "> https://github.com/yaboipy"
+        },
+        {
+          "Title": "# Hello!",
+          "Body": "> mind joining my server!",
+          "Link": "> discord.gg/"
+        },
+      ]
     }
   }
 }
@@ -106,6 +119,7 @@ Recommended Config:
 | ---  | ---  | ---         |
 | `CapApi` | CAPTCHA | Supported Captcha Service & Api Captcha solver
 | `Ver` | CONFIG | GoDm Client Version
+| `Message` | MASSDM | Array of messages that will be randomly chosen and sent
 
 
 **Config**
@@ -115,6 +129,7 @@ Recommended Config:
 | `SolveCaptcha` | CAPTCHA | Solves The Capthca Using Api
 | `CCManager` | PROCESS | False will have no limit to MaxRountines
 | `MaxRoutines` | PROCESS | The Max ammount of Concurrent WaitGroups allowed to run
+| `CaptchaRetry` | CONFIG | The Max ammount of times a captcha is re-solved 
 | `RateLimit` | ANTI | Will Safely stop for if it encounnters a ratelimit and go after its over
 
 **Client**
@@ -124,6 +139,7 @@ Recommended Config:
 | `Proxy` | HTTP | Your Proxy address Format: username:password@hostname:port
 | `Redirect` | HTTP | specifies the policy for handling redirects
 | `Agent` | HEADER | UserAgent To fall back on
+| `WebKit` | HEADER | The webkit Used for the Useragents
 | `TimeOut` | HTTP | Time-[sec] after request with no response, allowed 0 = no timeout
 
 </p>
