@@ -54,7 +54,7 @@ ________________________________________________
   [10] Channeld ID And Amount To ping in a single message 
   [11] Server ID Channel ID Message ID and Bot user ID
   [12] Full Username / USER#0000
-  [13] email:pass:token format / 4 options
+  [13] email:pass:token format / 6 options
   [14] Nitro Tokens in tokens.txt and server ID
 ________________________________________________
 
