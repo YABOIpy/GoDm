@@ -77,7 +77,8 @@ Proxies available at:
 - https://iproyal.com
 - https://proxiware.com
 - https://proxies.gg
-- 
+
+
 Format: user:pass@ip:port
 
 if using residential proxies
