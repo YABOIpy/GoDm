@@ -12,6 +12,7 @@ coming soon star for updates!
 
 # About
 
+
 <p align="center" style="text-align: center"> 
   <img src="https://sloc.xyz/github/yaboipy/godm/">
   <img src="https://img.shields.io/github/downloads/yaboipy/godm/total?color=green&label=Release Downloads">
@@ -58,6 +59,11 @@ ________________________________________________
   [14] Nitro Tokens in tokens.txt and server ID
 ________________________________________________
 
+Recommended:
+> use 0 - 3000 tokens for stability
+> above 20 mbps netspeed dependent on amount of tokens
+
+GoDm was made to be fast so even small amounts are enough for significant speeds
 ```
 
 # Config
@@ -74,6 +80,12 @@ Proxies available at:
 - 
 Format: user:pass@ip:port
 
+if using residential proxies
+just put it in the config.json
+
+if using proxies from proxies.txt
+use the same amount of tokens as proxies
+within the txts
 _____________
 Recommended Config:
 ```json
@@ -88,7 +100,7 @@ Recommended Config:
       "RateLimit": true
     },
     "Net": {
-      "JA3": "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,35-51-13-17513-45-10-65281-0-11-27-16-23-18-5-43,29-23-24,0",
+      "JA3": "772,4865-4866-49195-49199-49196-49200-52393-49171-49172-156-157-47-53,35-51-13-17513-45-10-65281-0-11-27-16-23-18-5-43,29-23-24,0",
       "Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
       "Proxy": "your-proxy-address",
       "WebKit": "537.36",
