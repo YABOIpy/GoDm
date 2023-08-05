@@ -3,12 +3,13 @@ package modules
 import (
 	"encoding/json"
 	"fmt"
-	http "github.com/Danny-Dasilva/fhttp"
 	"io"
 	"log"
-	shttp "net/http"
 	"strings"
 	"time"
+	
+	http "github.com/Danny-Dasilva/fhttp"
+	shttp "net/http"
 )
 
 func (in *Instance) Browser() (browsers []BrowserData) {
