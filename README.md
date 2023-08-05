@@ -19,7 +19,8 @@ coming soon star for updates!
 </p>
 
 <p align="center" style="text-align: center"> 
-  <img width="900" alt="image" src="https://github.com/YABOIpy/GoDm/assets/110062350/3c0c725d-f002-4b31-be46-2fa7ba148a04">
+  <img width="1200" alt="image" src="https://github.com/YABOIpy/GoDm/assets/110062350/e5d31ea6-7f1c-40bc-b5a8-2ec34528ce39">
+ 
 </p>
 
 
@@ -62,6 +63,10 @@ ________________________________________________
 Recommended:
 > use 0 - 3000 tokens for stability
 > above 20 mbps netspeed dependent on amount of tokens
+____
+> godm creates a random context for each token, its not adviced to restarting godm after different functions.
+> it will automatically return to the menu
+
 
 GoDm was made to be fast so even small amounts are enough for significant speeds
 ```
@@ -111,7 +116,7 @@ Recommended Config:
     "Discord": {
       "Ver": 2.0,
       "CapApi": ["captcha-service", "service-api-key"],
-      "Presence": ["online", "dnd", "idle"],
+      "Presence": ["online", "dnd", "idle""], 
       "Message": [
         {
           "Title": "# Hey!",
