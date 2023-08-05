@@ -188,7 +188,7 @@ more captcha api
 ```
 
 # Previews:
-
+soon.
 
 
 this is for educational use ONLY 😉
