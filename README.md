@@ -116,7 +116,7 @@ Recommended Config:
     "Discord": {
       "Ver": 2.0,
       "CapApi": ["captcha-service", "service-api-key"],
-      "Presence": ["online", "dnd", "idle""], 
+      "Presence": ["online", "dnd", "idle"], 
       "Message": [
         {
           "Title": "# Hey!",
