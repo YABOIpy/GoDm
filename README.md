@@ -184,7 +184,6 @@ ________________________
 
 # TODO
 ```
-dynamic Ja3 Fingerprinting
 more captcha api
 ```
 
