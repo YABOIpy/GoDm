@@ -59,7 +59,7 @@ ________________________________________________
 Recommended:
 > use 0 - 3000 tokens for stability
 > above 20 mbps netspeed dependent on amount of tokens
-____
+________________________________________________
 > godm creates a random context for each token, its not adviced to restarting godm after different functions.
 > it will automatically return to the menu
 
