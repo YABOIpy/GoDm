@@ -1,447 +1,287 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"massdm/scraper"
-	"massdm/src"
+	"log"
+	"math/rand"
 	"os"
-	"strconv"
-	"strings"
-	"sync"
+	"regexp"
+	"runtime"
+	"source/src/modules"
+	"source/src/task"
 	"time"
-
-	"github.com/zenthangplus/goccm"
 )
 
 var (
-	c = massdm.X()
-	s = Scraper.X()
+	Mod = modules.Modules{}
+	Con = modules.Instance{}
+	Ws  = modules.Sock{}
 )
 
-func MassDm(message string) {
-
-	var wg goccm.ConcurrencyManager
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-	ids, err := c.ReadFile("ids.txt")
-	c.Errs(err)
-
-	for i := 0; i < len(Token); i++ {
-		wg.Wait()
-		go func(i int) {
-			defer wg.Done()
-			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
-			}
-			for _, UserID := range ids {
-				ID, _ := strconv.Atoi(UserID)
-				CID, err := c.Create(ID, Token[i], message)
-				c.Errs(err)
-
-				if c.Config().Settings.Close == true {
-					c.CloseDm(CID, Token[i], massdm.Cookie)
-				}
-				if c.Config().Settings.Block == true {
-					c.Block(ID, Token[i], massdm.Cookie)
-				}
-			}
-		}(i)
-	}
-	wg.WaitAllDone()
-	Return()
-
-}
-
-func Spam_Dm(UserID string, message string) {
-
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	var wg goccm.ConcurrencyManager
-	wg = goccm.New(300)
-
-	ID, _ := strconv.Atoi(UserID)
-	for i := 0; i < len(Token); i++ {
-		wg.Wait()
-		go func(i int) {
-			defer wg.Done()
-			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
-			}
-			CID, err := c.Create(ID, Token[i], message)
-			c.Errs(err)
-			for true {
-				c.Dm_Spam(CID, Token[i], message)
-			}
-		}(i)
-	}
-	wg.WaitAllDone()
-}
-
-func Join(invite string) {
-
-	var wg goccm.ConcurrencyManager
-	var session string
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	wg = goccm.New(300)
-
-	interval := c.Config().Mode.Interval.Intjoiner
-	if interval > 0 {
-		for i := 0; i < len(Token); i++ {
-			time.Sleep(time.Duration(interval) * time.Second)
-			if c.Config().Settings.Websock == true {
-				session = c.Socket(Token[i]).Data.SessionID
-			}
-			c.Joiner(Token[i], invite, "", "", session, 0)
-
-		}
-		Return()
-	} else {
-		for i := 0; i < len(Token); i++ {
-			wg.Wait()
-			go func(i int) {
-				defer wg.Done()
-				if c.Config().Settings.Websock == true {
-					session = c.Socket(Token[i]).Data.SessionID
-				}
-				c.Joiner(Token[i], invite, "", "", session, 0)
-			}(i)
-		}
-		wg.WaitAllDone()
-		Return()
-	}
-}
-
-func Leave(ID string) {
-
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	var wg goccm.ConcurrencyManager
-	wg = goccm.New(300)
-
-	for i := 0; i < len(Token); i++ {
-		go func(i int) {
-			defer wg.Done()
-			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
-			}
-			c.Leaver(Token[i], ID)
-		}(i)
-	}
-	wg.WaitAllDone()
-	Return()
-}
-
-func Check() {
-
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-	f := [3]string{
-		"data/valid.txt",
-		"data/locked.txt",
-		"data/invalid.txt",
-	}
-	for i := 0; i < len(f); i++ {
-		os.Truncate(f[i], 0)
-	}
-	var (
-		grn = "\033[32m"
-		yel = "\033[33m"
-		red = "\033[31m"
-		r   = "\033[39m"
-	)
-
-	var wg sync.WaitGroup
-	wg.Add(len(Token))
-
-	start := time.Now()
-	for i := 0; i < len(Token); i++ {
-		go func(i int) {
-			defer wg.Done()
-			r := c.Check(Token[i])
-			switch r {
-			case 200:
-				c.WriteFile("data/valid.txt", Token[i])
-			case 403:
-				c.WriteFile("data/locked.txt", Token[i])
-			default:
-				c.WriteFile("data/invalid.txt", Token[i])
-			}
-
-		}(i)
-	}
-	wg.Wait()
-	elapsed := time.Since(start)
-	fmt.Println("["+grn+"✓"+r+"] (TIME):", elapsed.String()[:4]+"Ms", "("+yel+"LOCKED"+r+"):", c.Checker.Locked, "("+red+"INVALID"+r+"):", c.Checker.Invalid, "("+grn+"VALID"+r+"):", c.Checker.Valid, "(TOTAL):", c.Checker.All)
-	c.Checker.All = 0
-	c.Checker.Locked = 0
-	c.Checker.Valid = 0
-	c.Checker.Invalid = 0
-	Return()
-}
-
-func Reac(link string) {
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	var wg goccm.ConcurrencyManager
-	wg = goccm.New(300)
-
-	for i := 0; i < len(Token); i++ {
-		wg.Wait()
-		go func(i int) {
-			defer wg.Done()
-			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
-			}
-			c.React(Token[i], link)
-		}(i)
-	}
-	wg.WaitAllDone()
-	Return()
-}
-
-func Rules(invite string, ID string) {
-
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	var wg goccm.ConcurrencyManager
-	wg = goccm.New(300)
-
-	for i := 0; i < len(Token); i++ {
-		wg.Wait()
-		go func(i int) {
-			defer wg.Done()
-			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
-			}
-			c.Agree(Token[i], invite, ID)
-		}(i)
-	}
-	wg.WaitAllDone()
-	Return()
-}
-
-func Raid(message string, ID string) {
-
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	var wg goccm.ConcurrencyManager
-	wg = goccm.New(300)
-
-	for i := 0; i < len(Token); i++ {
-		wg.Wait()
-		go func(i int) {
-			defer wg.Done()
-			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
-			}
-			c.Raider(Token[i], message, ID)
-		}(i)
-	}
-	wg.WaitAllDone()
-}
-
-func Friend(user string) {
-
-	username := strings.Split(user, "#")
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	var wg goccm.ConcurrencyManager
-	wg = goccm.New(300)
-
-	for i := 0; i < len(Token); i++ {
-		wg.Wait()
-		go func(i int) {
-			defer wg.Done()
-			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
-			}
-			c.Friend(Token[i], username[0], username[1])
-		}(i)
-	}
-	wg.WaitAllDone()
-	Return()
-}
-
-func Scrape(Token string, GID string, CID string) {
-	for {
-		resp, rep := s.Connect(Token)
-		fmt.Println(resp.Data, string(rep))
-		//s.Scrape(resp, GID, CID, 0)
-		//fmt.Println(data)
-		//s.Scrape(GID, CID, 0)
-		fmt.Println("scraping...")
-	}
-	Return()
-}
-
-func Ping(message string, amount int, ID string) {
-
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	var wg goccm.ConcurrencyManager
-	wg = goccm.New(300)
-
-	for i := 0; i < len(Token); i++ {
-		wg.Wait()
-		go func(i int) {
-			defer wg.Done()
-			if c.Config().Settings.Websock == true {
-				c.WebSock(Token[i])
-			}
-			c.MassPing(Token[i], message, amount, ID)
-		}(i)
-	}
-	wg.WaitAllDone()
-	Return()
-
-}
-
-func Click(GID string, CID string, MID string, BotID string, Type int, Comp int, Text string) {
-	Token, err := c.ReadFile("tokens.txt")
-	c.Errs(err)
-
-	var wg goccm.ConcurrencyManager
-	wg = goccm.New(300)
-
-	x, _ := strconv.Atoi(strconv.Itoa(Type))
-	s, _ := strconv.Atoi(strconv.Itoa(Comp))
-	if Type == x {
-		Type = 3
-	}
-	if Comp == s {
-		Comp = 2
-	}
-	for i := 0; i < len(Token); i++ {
-		wg.Wait()
-		go func(i int) {
-			defer wg.Done()
-			c.Buttons(Token[i], GID, CID, MID, BotID, Type, Comp, Text)
-		}(i)
-	}
-	wg.WaitAllDone()
-
-	Return()
-}
+type FuncMap map[int]func()
 
 func main() {
-	c.Cls()
-	scn := bufio.NewScanner(os.Stdin)
-	c.CheckConfig()
-	fmt.Print(c.Logo())
-	var choice int
-	fmt.Scanln(&choice)
-	if choice == 1 {
-		fmt.Print("	[Message]>: ")
-		scn.Scan()
-		msg := scn.Text()
-		MassDm(msg)
-	} else if choice == 2 {
-		var ID string
-		fmt.Print("	[UserID]>: ")
-		fmt.Scanln(&ID)
-		fmt.Print("	[Message]>: ")
-		scn.Scan()
-		msg := scn.Text()
-		Spam_Dm(ID, msg)
-	} else if choice == 3 {
-		var link string
-		fmt.Print("	[Link]>: ")
-		fmt.Scanln(&link)
-		Reac(link)
-	} else if choice == 4 {
-		var invite string
-		fmt.Print("	discord.gg/")
-		fmt.Scanln(&invite)
-		Join(invite)
-	} else if choice == 5 {
-		var ID string
-		fmt.Print("	[ID]>: ")
-		fmt.Scanln(&ID)
-		Leave(ID)
+	in := initialize()
+	task.Return(0)
+	LoadChoice(in)
+}
 
-	} else if choice == 6 {
-		var invite, ID string
-		fmt.Print("	discord.gg/")
-		fmt.Scanln(&invite)
-		fmt.Print("	[ServerID]>: ")
-		fmt.Scanln(&ID)
-		Rules(invite, ID)
-	} else if choice == 7 {
-		var ID string
-		fmt.Print("	[Message]>: ")
-		scn.Scan()
-		msg := scn.Text()
-		fmt.Print("	[ChannelID]>: ")
-		fmt.Scanln(&ID)
-		Raid(msg, ID)
-	} else if choice == 8 {
-		var token, GID, CID string
-		fmt.Print("	[Token]>: ")
-		fmt.Scanln(&token)
-		fmt.Print("	[ServerID]>: ")
-		fmt.Scanln(&GID)
-		fmt.Print("	[ChannelID]>: ")
-		fmt.Scanln(&CID)
-		Scrape(token, GID, CID)
-	} else if choice == 9 {
-		Check()
-	} else if choice == 10 {
-		var (
-			ID    string
-			count int
-		)
-		fmt.Print("	[Message]>: ")
-		scn.Scan()
-		msg := scn.Text()
-		fmt.Print("	[Ping Amount]>: ")
-		fmt.Scanln(&count)
-		fmt.Print("	[ChannelID]>: ")
-		fmt.Scanln(&ID)
-		Ping(msg, count, ID)
-	} else if choice == 11 {
-		var GID, CID, MID, BotID, Text string
-		var Type, Comp int
-		fmt.Print("	[ServerID]>: ")
-		fmt.Scanln(&GID)
-		fmt.Print("	[ChannelID]>: ")
-		fmt.Scanln(&CID)
-		fmt.Print("	[MessageID]>: ")
-		fmt.Scanln(&MID)
-		fmt.Print("	[BOT UserID]>: ")
-		fmt.Scanln(&BotID)
-		fmt.Print("	[Button Name]>: ")
-		fmt.Scanln(&Text)
-		fmt.Println("	\u001B[36mLeave Empty For Defualts\u001B[39m")
-		fmt.Print("	[Button type INT]>: ")
-		fmt.Scanln(&Type)
-		fmt.Print("	[Component type INT]>: ")
-		fmt.Scanln(&Comp)
-		Click(GID, CID, MID, BotID, Type, Comp, Text)
+func initialize() []modules.Instance {
+	log.Println(modules.Initializing)
+	modules.RSeed.GenerateSeed()
+	instances, err := Con.Configuration()
+	if err != nil {
+		log.Println(err)
+	}
+	return instances
+}
 
-	} else if choice == 12 {
-		var user string
-		fmt.Print("	[username#0000]>: ")
-		fmt.Scanln(&user)
-		Friend(user)
-	} else {
-		fmt.Println("[\u001B[31m~\u001B[39m]	Wrong Input")
-		time.Sleep(1 * time.Second)
-		main()
+func LoadChoice(in []modules.Instance) {
+	opt := FuncMap{
+		1: func() {
+			var cooldown time.Duration
+			var msg string
+			fmt.Println(modules.MassDmMention)
+			if interval := Mod.InputInt("CoolDown"); interval != 0 {
+				cooldown = time.Duration(interval) + time.Duration(rand.Intn(9)+2)
+			}
+		r:
+			if msg = Mod.Input("Message: "); len(msg) == 0 {
+				cfg, _ := Mod.LoadConfig("config.json")
+				message := cfg.Mode.Discord.Message
+				if message != nil {
+					modules.RandSeed().GenerateSeed()
+					i := rand.Intn(len(message))
+					msg = fmt.Sprintf("%s \n%s \n%s",
+						message[i].Title,
+						message[i].Body,
+						message[i].Link,
+					)
+				} else {
+					log.Println("No Messages Found.")
+					time.Sleep(2 * time.Second)
+					goto r
+				}
+			}
+			task.MassDmTask(in, msg, cooldown)
+		},
+		2: func() {
+			ID := Mod.Input("UserID: ")
+			msg := Mod.Input("Message: ")
+			task.StartTask(in, func(c modules.Instance) {
+				data := Con.CreateChannel(c, ID)
+				if Con.Eligible(c, ID) {
+					Con.Message(c, msg, data.Id, modules.MessageOptions{Loop: true})
+				}
+			})
+		},
+		3: func() {
+			fmt.Println(modules.InServerMention)
+			CID := Mod.Input("Channel ID: ")
+			MID := Mod.Input("Message ID: ")
+			data := Mod.MessageData(in[0], CID, MID)
+			for _, v := range data {
+				for j, k := range v.Reactions {
+					fmt.Printf("\u001B[36m| [\u001B[39m%d\u001B[36m]\u001B[39m %s ", j, k.Emoji.Name)
+				}
+			}
+			fmt.Println()
+			emoji := data[0].Reactions[Mod.InputInt("Choice")].Emoji.Name
+			task.StartTask(in, func(c modules.Instance) {
+				Con.Reaction(c, CID, MID, emoji)
+			})
+		},
+		4: func() {
+			inv := Mod.Input("discord.gg/")
+			os.Truncate("data/joined.txt", 0)
+			task.StartTask(in, func(c modules.Instance) {
+				d, _, con := Ws.Connect(c.Token, c)
+				defer con.Ws.Close()
+				Con.Joiner(c, inv, d.Data.SessionID)
+			})
+			j, _, _ := Mod.ReadFile("data/joined.txt")
+			if len(j) != len(in) && len(j) > 0 {
+				if Mod.Input(modules.WriteJoinedMention) == "y" {
+					os.Truncate("tokens.txt", 0)
+					Mod.WriteFileArray("tokens.txt", j)
+					main()
+				}
+			}
+		},
+		5: func() {
+			ID := Mod.Input("Guild ID: ")
+			task.StartTask(in, func(c modules.Instance) {
+				Con.Leaver(c, ID)
+			})
+		},
+		6: func() {
+			fmt.Println(modules.InServerMention)
+			ID := Mod.Input("Guild ID: ")
+			inv := Mod.Input("discord.gg/")
+			task.StartTask(in, func(c modules.Instance) {
+				Con.MemberVerify(c, ID, inv)
+			})
+		},
+		7: func() {
+			// Should be clear enough.. fmt.Println(modules.InServerMention)
+			msg := Mod.Input("Message: ")
+			ID := Mod.Input("Channel ID:")
+			task.StartTask(in, func(c modules.Instance) {
+				Con.Message(c, msg, ID, modules.MessageOptions{Loop: true})
+			})
+		},
+		8: func() {
+			Token := Mod.Input("Token:")
+			GID := Mod.Input("Guild ID: ")
+			CID := Mod.Input("Channel ID: ")
+			task.ScrapeTask(Token, in[0], GID, CID)
+		},
+		9: func() { task.CheckerTask(in) },
+		10: func() {
+			msg := Mod.Input("Message: ")
+			ID := Mod.Input("Channel ID:")
+			ids, _, _ := Mod.ReadFile("data/ids.txt")
+			options := modules.MessageOptions{
+				Mping:  true,
+				Loop:   true,
+				IDs:    ids,
+				Amount: Mod.InputInt("Ping Per Message"),
+			}
+			task.StartTask(in, func(c modules.Instance) {
+				Con.Message(c, msg, ID, options)
+			})
+		},
+		11: func() {
+			//will leave indexing like this. i have yet to see more data.
+			link := Mod.Input("Message Link: ")
+			re := regexp.MustCompile(`\d+`)
+			ID := re.FindAllString(link, -1)
+			data := Mod.MessageData(in[0], ID[1], ID[2])
+			for i, d := range data {
+				for j, b := range d.Components[i].Components {
+					fmt.Printf("\033[36m| [\033[39m%d\u001B[36m]\u001B[39m %s %s ", j, b.Emoji.Name, b.Label)
+				}
+			}
+			fmt.Println()
+
+			opt := &modules.ButtonOptions{
+				Button:  data[0].Components[0].Components[Mod.InputInt("Choice")], // <-
+				Type:    3,
+				GuildID: ID[0],
+			}
+			task.StartTask(in, func(c modules.Instance) {
+				wsd, _, _ := Ws.Connect(c.Token, c)
+				opt.SessionID = wsd.Data.SessionID
+				Con.Buttons(c, data[0], *opt)
+			})
+		},
+		12: func() {
+			fmt.Println(modules.DiscrimMention)
+			data := modules.FriendReq{
+				Username: Mod.Input("Username: "),
+			}
+			disc := Mod.Input(data.Username + "#")
+			data.Discrim = nil
+			if disc != "" {
+				data.Discrim = disc
+			}
+			task.StartTask(in, func(c modules.Instance) {
+				Con.Friend(c, data)
+			})
+		},
+		13: func() {
+			choice := Mod.InputInt(modules.TokenOptions)
+			switch choice {
+			case 1:
+				user := Mod.Input("Username: ")
+				task.StartTask(in, func(c modules.Instance) {
+					Con.DisplayName(c, user)
+				})
+			case 2:
+				bio := Mod.Input("Bio: ")
+				task.StartTask(in, func(c modules.Instance) {
+					Con.Bio(c, bio)
+				})
+			case 3:
+				fmt.Println(modules.BandWidthMention)
+				fmt.Println(modules.ImageFormatMention)
+				if !Mod.InputBool("Continue") {
+					break
+				}
+				img := Mod.ReadDirectory("data/pfp", "png")
+				task.StartTask(in, func(c modules.Instance) {
+					_, _, conn := Ws.Connect(c.Token, c)
+					defer conn.Ws.Close()
+					Con.Avatar(c, img[rand.Intn(len(img))])
+				})
+			case 4:
+				var data []string
+				fmt.Println(modules.TokenFormatMention)
+				fmt.Println(modules.PasswordFieldMention)
+				password := Mod.Input("Password: ")
+				task.StartTask(in, func(c modules.Instance) {
+					data = append(data, Con.Password(c, password))
+				})
+				os.Truncate("tokens.txt", 0)
+				Mod.WriteFileArray("tokens.txt", data)
+			case 5:
+				text := Mod.Input("Pronouns: ")
+				task.StartTask(in, func(c modules.Instance) {
+					Con.Pronouns(c, text)
+				})
+			case 6:
+				fmt.Println(modules.TokenFormatMention)
+				user := Mod.Input("Username: ")
+				task.StartTask(in, func(c modules.Instance) {
+					Con.Username(c, user)
+				})
+			case 7:
+				// TODO: take combos from txt file
+				//user := Mod.Input("Username: ")
+				task.StartTask(in, func(c modules.Instance) {
+				})
+			}
+		},
+		14: func() {
+			ID := Mod.Input("Guild ID: ")
+			task.StartTask(in, func(c modules.Instance) {
+				Con.Boost(c, ID)
+			})
+		},
+		15: func() {
+			opt := modules.VcOptions{
+				GID:  Mod.Input("Guild ID: "),
+				CID:  Mod.Input("Channel ID: "),
+				Mute: Mod.InputBool("Mute"),
+				Deaf: Mod.InputBool("Deafen"),
+			}
+			task.StartTask(in, func(c modules.Instance) {
+				Con.VoiceChat(c, opt)
+			})
+		},
+		16: func() {
+			fmt.Println("Coming Soon..")
+			task.Return(2)
+		},
+	}
+	for {
+		choice := Mod.InputInt("Choice")
+		if choice == 0 {
+			//restart the client
+			runtime.GC()
+			Mod.Cls()
+			main()
+		}
+		if function, v := opt[choice]; v {
+			function()
+			task.Return(3)
+		} else {
+			fmt.Println("Invalid Choice..")
+			task.Return(1)
+		}
 	}
 }
 
-func Return() {
-	fmt.Println("\u001B[39mGoing Back to menu...")
-	time.Sleep(3 * time.Second)
-	main()
-}
+// TODO: Options {
+// onboarding + captcha support
+//}
