@@ -131,14 +131,6 @@ Recommended Config:
 
 ```
 
-**Discord**
-| Name | Type | Description | 
-| ---  | ---  | ---         |
-| `CapApi` | CAPTCHA | Supported Captcha Service & Api Captcha solver
-| `Ver` | CONFIG | GoDm Client Version
-| `Message` | MASSDM | Array of messages that will be randomly chosen and sent
-
-
 **Config**
 | Name | Type | Description | 
 | ---  | ---  | ---         |
@@ -158,6 +150,14 @@ Recommended Config:
 | `Agent` | HEADER | UserAgent To fall back on
 | `WebKit` | HEADER | The webkit Used for the Useragents
 | `TimeOut` | HTTP | Time-[sec] after request with no response, allowed 0 = no timeout
+
+**Discord**
+| Name | Type | Description | 
+| ---  | ---  | ---         |
+| `Ver` | CONFIG | GoDm Client Version
+| `CapApi` | CAPTCHA | Supported Captcha Service & Api Captcha solver
+| `Presence` | CONFIG | Array of presence's the tokens have.
+| `Message` | MASSDM | Array of messages that will be randomly chosen and sent
 
 </p>
 
