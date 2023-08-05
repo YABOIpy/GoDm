@@ -179,12 +179,12 @@ ________________________
 ```md
 > Specify which Function
 > Show a Screenshot
-> note the config u had 
+> note the inputs & config u had 
 ```
 
 # TODO
 ```
-more captcha api
+Captcha Support
 ```
 
 # Previews:
