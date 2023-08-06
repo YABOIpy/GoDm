@@ -56,6 +56,8 @@ ________________________________________________
   [14] Nitro Tokens in tokens.txt and server ID
 ________________________________________________
 
+time logging: the logger will return in ms so 500ms, but if its 5.23ms than its 5s & 230ms
+
 Recommended:
 > use 0 - 3000 tokens for stability
 > above 20 mbps netspeed dependent on amount of tokens
