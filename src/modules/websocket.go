@@ -8,7 +8,6 @@ import (
 	"log"
 	"math/rand"
 	shttp "net/http"
-	"strconv"
 	"time"
 )
 
@@ -40,48 +39,30 @@ func (ws *Sock) Connect(Token string, in Instance) (*WsResp, []byte, *Sock) {
 }
 
 func (c *Sock) ScrapeUsers(GID string, CID string, iter int) []Member {
-	s := time.Now()
-	const max = 6
-	var cv, pv int
 
+	time.Sleep(1 * time.Second)
 	c.GuildConnection(c.Ws, GID, CID, iter)
 
-	for {
-		select {
-		case <-time.After(max * time.Second):
-			c.Break = true
-			return c.Members
-		default:
-			_, b, _ := c.Ws.ReadMessage()
-			var data WsResp
-			if err := json.Unmarshal(b, &data); err != nil {
-				continue
+	_, b, _ := c.Ws.ReadMessage()
+	var data WsResp
+	json.Unmarshal(b, &data)
+
+	if data.Name == EventGuildMemberListUpdate {
+		for i := 0; i < len(data.Data.Ops); i++ {
+			if len(data.Data.Ops[i].Items) == 0 && data.Data.Ops[i].Op == EventSync {
+				c.Break = true
 			}
-
-			if data.Name == EventGuildMemberListUpdate {
-				for i := 0; i < len(data.Data.Ops); i++ {
-					if data.Data.Ops[i].Op == EventSync {
-						for j := 0; j < len(data.Data.Ops[i].Items); j++ {
-							c.Members = append(c.Members, data.Data.Ops[i].Items[j].Member)
-						}
-					}
-				}
-				if len(c.Members) == pv {
-					cv++
-
-				} else {
-					cv = 0
-					pv = len(c.Members)
-					modules.StrlogV("Got Online Member Chunk", strconv.Itoa(len(c.Members)), s)
-				}
-
-				if cv >= max {
-					c.Break = true
-					return c.Members
+		}
+		for i := 0; i < len(data.Data.Ops); i++ {
+			if data.Data.Ops[i].Op == EventSync {
+				for j := 0; j < len(data.Data.Ops[i].Items); j++ {
+					c.Members = append(c.Members, data.Data.Ops[i].Items[j].Member)
 				}
 			}
 		}
 	}
+
+	return c.Members
 }
 
 func (s *Sock) GuildConnection(Ws *websocket.Conn, GID string, CID string, iter int) {
@@ -90,14 +71,15 @@ func (s *Sock) GuildConnection(Ws *websocket.Conn, GID string, CID string, iter 
 	}
 
 	var v []interface{}
-	for i := 0; i < 3; i++ {
-		k := i * 100
-		o := k + 99
-		if i == 0 {
-			v = append(v, [2]int{0, 99})
-		} else {
-			v = append(v, [2]int{k, o})
-		}
+	switch iter {
+	case 0:
+		v = []interface{}{[2]int{0, 99}}
+	case 1:
+		v = []interface{}{[2]int{0, 99}, [2]int{100, 199}}
+	case 2:
+		v = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{200, 299}}
+	default:
+		v = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{iter * 100, (iter * 100) + 99}}
 	}
 
 	Ws.WriteJSON(WsResp{
