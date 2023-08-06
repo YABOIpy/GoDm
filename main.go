@@ -238,8 +238,9 @@ func LoadChoice(in []modules.Instance) {
 			case 7:
 				// TODO: take combos from txt file
 				//user := Mod.Input("Username: ")
-				task.StartTask(in, func(c modules.Instance) {
-				})
+				// task.StartTask(in, func(c modules.Instance) {
+				// })
+				fmt.Println("Coming Soon..")
 			}
 		},
 		14: func() {
@@ -261,7 +262,6 @@ func LoadChoice(in []modules.Instance) {
 		},
 		16: func() {
 			fmt.Println("Coming Soon..")
-			task.Return(2)
 		},
 	}
 	for {
