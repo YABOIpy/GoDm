@@ -57,6 +57,7 @@ ________________________________________________
 ________________________________________________
 
 time logging: the logger will return in ms so 500ms, but if its 5.23ms than its 5s & 230ms
+before scraping, have a atleast a single token within the list
 
 Recommended:
 > use 0 - 3000 tokens for stability
