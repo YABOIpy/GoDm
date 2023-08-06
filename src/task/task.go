@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"source/src/modules"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -151,14 +152,20 @@ func MassDmTask(in []modules.Instance, msg string, interval time.Duration) {
 func ScrapeTask(Token string, in modules.Instance, GID string, CID string) {
 	_, _, con := Ws.Connect(Token, in)
 	os.Truncate("data/ids.txt", 0)
-	var iter int
+
+	var iter, pv int
 	for {
+		s := time.Now()
 		con.ScrapeUsers(GID, CID, iter)
 		if con.Break {
 			break
 		}
+		cv := len(con.Members)
+		if cv != pv && cv > 0 {
+			Mod.StrlogV("Got Online Member Chunk", strconv.Itoa(len(con.Members)), s)
+		}
+		pv = cv
 		iter++
-		fmt.Println(iter)
 	}
 	var ids []string
 	for i := 0; i < len(con.Members); i++ {
