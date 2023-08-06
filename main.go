@@ -5,11 +5,12 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"regexp"
 	"runtime"
 	"source/src/modules"
 	"source/src/task"
 	"time"
+
+	"github.com/wasilibs/go-re2"
 )
 
 var (
@@ -154,8 +155,7 @@ func LoadChoice(in []modules.Instance) {
 		11: func() {
 			//will leave indexing like this. i have yet to see more data.
 			link := Mod.Input("Message Link: ")
-			re := regexp.MustCompile(`\d+`)
-			ID := re.FindAllString(link, -1)
+			ID := re2.MustCompile(`\d+`).FindAllString(link, -1)
 			data := Mod.MessageData(in[0], ID[1], ID[2])
 			for i, d := range data {
 				for j, b := range d.Components[i].Components {
