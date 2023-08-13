@@ -123,12 +123,11 @@ func MassDmTask(in []modules.Instance, msg string, interval time.Duration) {
 											Captcha: captcha,
 										})
 									if resp != 200 {
+										time.Sleep(interval * time.Second)
 										goto retry
 									} else {
 										break
 									}
-
-									time.Sleep(interval * time.Second)
 								}
 							}
 						} else {
