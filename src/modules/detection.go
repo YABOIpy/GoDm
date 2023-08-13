@@ -245,7 +245,7 @@ func (in *Instance) SolveCapSolver(cfg CapCfg) string {
 	}
 
 	body, err := io.ReadAll(resp.Body)
-	if err = json.Unmarshal(body, data); err != nil {
+	if err = json.Unmarshal(body, &data); err != nil {
 		log.Println(err)
 		return ""
 	}
