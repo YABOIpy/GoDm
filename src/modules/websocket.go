@@ -29,7 +29,9 @@ func (ws *Sock) Connect(Token string, in Instance) (*WsResp, []byte, *Sock) {
 	)
 	if err != nil {
 		log.Println(err)
-		return nil, nil, nil
+		if len(Token) != 0 {
+			return websock.Connect(Token, in)
+		}
 	}
 
 	ws.Ws = conn
@@ -76,8 +78,6 @@ func (s *Sock) GuildConnection(Ws *websocket.Conn, GID string, CID string, iter 
 		v = []interface{}{[2]int{0, 99}}
 	case 1:
 		v = []interface{}{[2]int{0, 99}, [2]int{100, 199}}
-	case 2:
-		v = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{200, 299}}
 	default:
 		v = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{iter * 100, (iter * 100) + 99}}
 	}
