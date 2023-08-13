@@ -14,63 +14,64 @@ import (
 	"github.com/Danny-Dasilva/fhttp"
 )
 
-func (*Instance) Joiner(in Instance, invite, session string) {
+func (*Instance) Joiner(in Instance, invite, session string, typ int) {
 	s := time.Now()
-
-	var payload map[string]string
-	var captcha, rqtoken string
-	var Count int
-
+	var (
+		captcha, rqtoken string
+		payload map[string]string
+		ContextData []byte
+		Count int
+	)
 retry:
+	payload = map[string]string{"session_id": session}
 	if len(captcha) > 0 {
 		payload = map[string]string{
-			"captcha_key":     captcha,
+			"captcha_key": captcha,
 			"captcha_rqtoken": rqtoken,
-			"session_id":      session,
+			"session_id": session,
 		}
-	} else {
-		payload = map[string]string{"session_id": session}
+	} 
+	if typ != 1{
+		req, err := http.NewRequest("GET", fmt.Sprintf(
+			"https://discord.com/api/v9/invites/%s?inputValue=%s&with_counts=true&with_expiration=true", invite, invite),
+			nil,
+		)
+		if err != nil {
+			log.Println(err)
+		}
+	
+		Hd.Header(req, map[string]string{
+			"authorization":      in.Token,
+			"cookie":             in.Cookie,
+			"user-agent":         in.BrowserClient.Agent,
+			"referer":            "https://discord.com/channels/@me",
+			"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+			"sec-ch-ua":          in.SecUA(in),
+			"x-discord-timezone": in.TimeZones(),
+			"x-super-properties": in.Xprop,
+		})
+		resp, err := in.Client.Do(req)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	
+		var data JoinReq
+		defer resp.Body.Close()
+	
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Println(err)
+		}
+		json.Unmarshal(body, &data)
+	
+		ContextData, err = json.Marshal(JoinContext{
+			Location:            "Join Guild",
+			LocationGuildId:     data.Guild.Id,
+			LocationChannelId:   data.Channel.Id,
+			LocationChannelType: data.Channel.Type,
+		})
 	}
-
-	req, err := http.NewRequest("GET", fmt.Sprintf(
-		"https://discord.com/api/v9/invites/%s?inputValue=%s&with_counts=true&with_expiration=true", invite, invite),
-		nil,
-	)
-	if err != nil {
-		log.Println(err)
-	}
-
-	Hd.Header(req, map[string]string{
-		"authorization":      in.Token,
-		"cookie":             in.Cookie,
-		"user-agent":         in.BrowserClient.Agent,
-		"referer":            "https://discord.com/channels/@me",
-		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
-		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
-		"x-super-properties": in.Xprop,
-	})
-	resp, err := in.Client.Do(req)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	var data JoinReq
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println(err)
-	}
-	json.Unmarshal(body, &data)
-
-	ContextData, err := json.Marshal(JoinContext{
-		Location:            "Join Guild",
-		LocationGuildId:     data.Guild.Id,
-		LocationChannelId:   data.Channel.Id,
-		LocationChannelType: data.Channel.Type,
-	})
 
 	req2, err := http.NewRequest("POST",
 		"https://discord.com/api/v9/invites/"+invite,
@@ -87,13 +88,16 @@ retry:
 		"authorization":        in.Token,
 		"cookie":               in.Cookie,
 		"user-agent":           in.BrowserClient.Agent,
-		"referer":              "https://discord.com/channels/@me",
+		"referer":              "https://discord.com/",
 		"sec-ch-ua-platform":   in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":            in.SecUA(in),
 		"x-discord-timezone":   in.TimeZones(),
-		"x-context-properties": base64.StdEncoding.EncodeToString(ContextData),
 		"x-super-properties":   in.Xprop,
 	})
+	if typ != 1{
+		req2.Header.Set("x-context-properties", base64.StdEncoding.EncodeToString(ContextData))
+		req2.Header.Set("referer", "https://discord.com/channels/@me",)
+	}
 	resp2, err := in.Client.Do(req2)
 	if err != nil {
 		log.Println(err)
@@ -264,7 +268,6 @@ func (*Instance) Message(in Instance, msg, ID string, opt MessageOptions) (int, 
 			return resp.StatusCode, body
 		}
 	}
-	return 0, nil
 }
 
 func (in *Instance) Check() (int, time.Time) {
@@ -280,8 +283,7 @@ func (in *Instance) Check() (int, time.Time) {
 
 	resp, err := in.SClient.Do(req)
 	if err != nil {
-		log.Println(err)
-		return resp.StatusCode, s
+		return in.Check()
 	}
 	defer resp.Body.Close()
 
