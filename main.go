@@ -93,12 +93,13 @@ func LoadChoice(in []modules.Instance) {
 			})
 		},
 		4: func() {
+			typ := Mod.InputInt("1: Direct API\n2: Add Server API\nChoice")
 			inv := Mod.Input("discord.gg/")
 			os.Truncate("data/joined.txt", 0)
 			task.StartTask(in, func(c modules.Instance) {
 				d, _, con := Ws.Connect(c.Token, c)
 				defer con.Ws.Close()
-				Con.Joiner(c, inv, d.Data.SessionID)
+				Con.Joiner(c, inv, d.Data.SessionID, typ)
 			})
 			j, _, _ := Mod.ReadFile("data/joined.txt")
 			if len(j) != len(in) && len(j) > 0 {
