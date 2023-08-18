@@ -170,7 +170,7 @@ func (m *Modules) InputInt(text string) int {
 	}
 	return d
 }
-
+// TODO: turn tokenconfig into an array...
 func (m *Modules) ReadFile(path string) ([]string, TokenConfig, error) {
 	file, err := os.Open(path)
 	if err != nil {
