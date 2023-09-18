@@ -1,5 +1,7 @@
 <img align="right" width="159px" src="https://github.com/YABOIpy/GoDm/assets/110062350/8ada5a13-f664-470e-9b8e-fe5473ea9d44">
 
+
+known issue: wont start. error with getting build num. fix soon.
 # OverView
 - [Introduction](#Usage)
 - [How](#How)
