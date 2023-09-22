@@ -170,6 +170,7 @@ func (m *Modules) InputInt(text string) int {
 	}
 	return d
 }
+
 // TODO: turn tokenconfig into an array...
 func (m *Modules) ReadFile(path string) ([]string, TokenConfig, error) {
 	file, err := os.Open(path)
@@ -329,10 +330,19 @@ func BuildInfo() string {
 
 	js := re2.MustCompile(`([a-zA-Z0-9]+)\.js`)
 	build := re2.MustCompilePOSIX(`Build Number: "\)\.concat\("([0-9]{4,8})"`)
+	c, _ := modules.Cookies()
+	Client := &fhttp.Client{}
 
-	Client := &http.Client{}
+	breq, err := fhttp.NewRequest("GET",
+		"https://discord.com/app",
+		nil,
+	)
+	Hd.Header(breq, map[string]string{
+		"accept-encoding": "identify",
+		"cookie":          c,
+	})
 
-	res, err := Client.Get("https://discord.com/app")
+	res, err := Client.Do(breq)
 	if err != nil {
 		log.Println(err)
 		return ""
@@ -350,8 +360,16 @@ func BuildInfo() string {
 	if strings.Contains(asset, "invisible") {
 		asset = rs[len(rs)-2]
 	}
+	req, err := fhttp.NewRequest("GET", ""+
+		"https://discord.com/assets/"+asset,
+		nil,
+	)
 
-	resp, err := Client.Get("https://discord.com/assets/" + asset)
+	Hd.Header(req, map[string]string{
+		"accept-encoding": "identify",
+		"cookie":          c,
+	})
+	resp, err := Client.Do(req)
 	if err != nil {
 		log.Println(err)
 		return ""
@@ -363,7 +381,7 @@ func BuildInfo() string {
 		log.Println(err)
 		return ""
 	}
-
+	fmt.Println(string(b))
 	buildInfos := strings.Split(
 		strings.ReplaceAll(build.FindAllString(string(b), -1)[0], " ", ""),
 		",",
