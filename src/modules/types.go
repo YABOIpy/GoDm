@@ -4,7 +4,6 @@ import (
 	"github.com/Danny-Dasilva/fhttp"
 	"github.com/gorilla/websocket"
 	shttp "net/http"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -77,7 +76,7 @@ var (
 	modules = Modules{}
 	websock = Sock{}
 	RSeed   = RandSeed()
-	cbn, _  = strconv.Atoi(BuildInfo())
+	cbn, _  = 230264, "" //strconv.Atoi(BuildInfo()) will be static for now. this project isnt really continued. did this just so it could run
 
 	x, r, g, bg, rb, gr, u, clr, yellow, red, prp = "\u001b[30;1m", "\033[39m", "\033[32m", "\u001b[34;1m", "\u001b[0m", "\u001b[30;1m", "\u001b[4m", "\033[36m", "\033[33m", "\u001B[31m", "\033[35m"
 )
