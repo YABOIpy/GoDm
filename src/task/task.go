@@ -50,10 +50,8 @@ func MassDmTask(in []modules.Instance, msg string, interval time.Duration) {
 		log.Println("No IDS found in tokens.txt..")
 		Return(1)
 	}
-	C := len(in)
-	ids := len(id)
-	dist := ids / C
-	over := ids % C
+	dist := len(id) / len(in)
+	over := len(id) % len(in)
 
 	group := make(map[string][]string)
 
