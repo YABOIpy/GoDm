@@ -215,7 +215,7 @@ func CheckerTask(in []modules.Instance) {
 	fmt.Printf(modules.CheckerFormat, time.Since(s).String()[:4], Mod.Checker.Locked, Mod.Checker.Invalid, Mod.Checker.Valid, Mod.Checker.All)
 	fmt.Printf("Delta:\u001B[34;1m %s\n\u001B[0m", delta/time.Duration(len(in)))
 	if Mod.Checker.All != Mod.Checker.Valid && Mod.Checker.Valid != 0 {
-		if Mod.Input(modules.WriteValidMention) == "y" {
+		if Mod.Input(modules.WriteValidMention) == "y" { // TODO: use input bool
 			os.Truncate("tokens.txt", 0)
 			var d []string
 			for i := 0; i < len(token); i++ {
