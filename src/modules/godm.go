@@ -552,7 +552,7 @@ func (*Instance) Username(in Instance, username string) {
 	}
 }
 
-func (*Instance) pronouns(in Instance, pronoun string) {
+func (*Instance) Pronouns(in Instance, pronoun string) {
 	s := time.Now()
 	req, err := http.NewRequest("PATCH",
 		"https://discord.com/api/v9/users/%40me/profile",
@@ -586,9 +586,9 @@ func (*Instance) pronouns(in Instance, pronoun string) {
 	}
 	switch resp.StatusCode {
 	case 200:
-		modules.StrlogV("Changed pronouns", pronoun, s)
+		modules.StrlogV("Changed Pronouns", pronoun, s)
 	default:
-		modules.StrlogE("Failed To Change pronouns", string(body), s)
+		modules.StrlogE("Failed To Change Pronouns", string(body), s)
 	}
 }
 
