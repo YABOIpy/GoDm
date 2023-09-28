@@ -90,8 +90,8 @@ if using residential proxies
 just put it in the config.json
 
 if using proxies from proxies.txt
-use the same amount of tokens as proxies
-within the txts
+use the same or more amount of proxies as tokens 
+within the file
 _____________
 Recommended Config:
 ```json
