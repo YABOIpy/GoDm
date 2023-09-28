@@ -61,7 +61,7 @@ before scraping, have a atleast a single token within the list
 
 
 Recommended:
-> use 0 - 3000 tokens for stability
+> use 1 - 3000 tokens for stability
 > above 20 mbps netspeed dependent on amount of tokens
 ________________________________________________
 > godm creates a random context for each token, its not advised to restart godm after different functions.
