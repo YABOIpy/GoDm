@@ -196,7 +196,6 @@ Clean Some code / nesting
 ```
 https://github.com/uber-go/guide
 https://github.com/Danny-Dasilva/CycleTLS
-https://github.com/bogdanfinn/tls-client - a version coming soon
 https://github.com/V4NSH4J/discord-mass-DM-GO
 ```
 # Previews:
