@@ -34,10 +34,7 @@ Download Compiled Version:
 
 https://github.com/YABOIpy/Go-MassDM/releases
 ```md
-Needs & Inputs:
-
-> tokens can be in mail:pass:token format or only token format
-> just make sure theyre inside tokens.txt and the separator is ":"
+Inputs:
 ________________________________________________
   [0] Refreshes GoDm
   [1] Message and Scraped Ids in ids.txt
@@ -59,12 +56,16 @@ ________________________________________________
 time logging: the logger will return in ms so 500ms, but if its 5.23ms than its 5s & 230ms
 before scraping, have a atleast a single token within the list
 
+> tokens can be in mail:pass:token format or only token format
+> just make sure theyre inside tokens.txt and the separator is ":"
+
+
 Recommended:
 > use 0 - 3000 tokens for stability
 > above 20 mbps netspeed dependent on amount of tokens
 ________________________________________________
-> godm creates a random context for each token, its not adviced to restarting godm after different functions.
-> it will automatically return to the menu
+> godm creates a random context for each token, its not advised to restart godm after different functions.
+> as it will automatically return to the menu
 
 
 GoDm was made to be fast so even small amounts are enough for significant speeds
@@ -73,7 +74,7 @@ GoDm was made to be fast so even small amounts are enough for significant speeds
 # Config
 
 
-Proxy Type: Residential rotating
+Proxy Type: Residential rotating / static list
 
 
 Proxies available at:
