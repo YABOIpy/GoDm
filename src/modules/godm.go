@@ -24,7 +24,7 @@ func (*Instance) Joiner(in Instance, invite, session string, typ int) {
 	)
 retry:
 	payload = map[string]string{"session_id": session}
-	if len(captcha) > 0 {
+	if len(captcha) != 0 {
 		payload = map[string]string{
 			"captcha_key": captcha,
 			"captcha_rqtoken": rqtoken,
