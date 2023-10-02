@@ -58,6 +58,7 @@ before scraping, have a atleast a single token within the list
 
 > tokens can be in mail:pass:token format or only token format
 > just make sure theyre inside tokens.txt and the separator is ":"
+> also do not mix the formats together
 
 
 Recommended:
