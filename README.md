@@ -52,7 +52,7 @@ ________________________________________________
   [10] Channeld ID & Amount To ping in a single message 
   [11] Message Link & Button Type https://discord.com/developers/docs/interactions/message-components
   [12] Full Username / USER#0000
-  [13] email:pass:token format / 6 options
+  [13] email:pass:token format / 8 options
   [14] Nitro Tokens in tokens.txt & server ID
   [15] Server ID & CHannel ID
   [16] SoundBoard Option & Channel ID
