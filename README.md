@@ -7,6 +7,9 @@
 - [Configuration](#Config)
 - [Donate](#Donations)
 
+
+# Join the Chat!: https://t.me/+ZsFhZWu8ZJMyZmNk
+
 # About
 
 
