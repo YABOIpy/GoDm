@@ -40,20 +40,24 @@ https://github.com/YABOIpy/Go-MassDM/releases
 Inputs:
 ________________________________________________
   [0] Refreshes GoDm
-  [1] Message and Scraped Ids in ids.txt
+  [1] Message & Scraped Ids in ids.txt
   [2] victims User ID
   [3] Channel ID & Message ID
   [4] Server invite
   [5] Server ID
   [6] Server Invite and Server ID
-  [7] Channel ID and Message
-  [8] Server ID and Channel ID
+  [7] Channel ID & Message
+  [8] Server ID & Channel ID
   [9] Tokens in tokens.txt
-  [10] Channeld ID And Amount To ping in a single message 
-  [11] Server ID Channel ID Message ID and Bot user ID
+  [10] Channeld ID & Amount To ping in a single message 
+  [11] Message Link & Button Type https://discord.com/developers/docs/interactions/message-components
   [12] Full Username / USER#0000
   [13] email:pass:token format / 6 options
-  [14] Nitro Tokens in tokens.txt and server ID
+  [14] Nitro Tokens in tokens.txt & server ID
+  [15] Server ID & CHannel ID
+  [16] SoundBoard Option & Channel ID
+  [17] Server Invite & Options
+  [18] Server Invite
 ________________________________________________
 
 time logging: the logger will return in ms so 500ms, but if its 5.23ms than its 5s & 230ms
