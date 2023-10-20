@@ -35,7 +35,7 @@ version 1.20+
 Go Not installed? 
 Download Compiled Version:
 
-https://github.com/YABOIpy/Go-MassDM/releases
+https://github.com/YABOIpy/GoDm/releases
 ```md
 Inputs:
 ________________________________________________
