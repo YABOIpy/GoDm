@@ -68,11 +68,10 @@ func (rt *roundTripper) getTransport(req *http.Request, addr string) error {
 	}
 
 	_, err := rt.dialTLS(context.Background(), "tcp", addr)
-	switch err {
-	case errProtocolNegotiated:
-	case nil:
-		// Should never happen.
-		panic("dialTLS returned no error when determining cachedTransports")
+	switch {
+	case errors.Is(err, errProtocolNegotiated):
+	case err == nil:
+		return errors.New("dialTLS returned no error when determining cachedTransports")
 	default:
 		return err
 	}
@@ -111,7 +110,7 @@ func (rt *roundTripper) dialTLS(ctx context.Context, network, addr string) (net.
 
 		utls.HelloCustom)
 
-	if err := conn.ApplyPreset(spec); err != nil {
+	if err = conn.ApplyPreset(spec); err != nil {
 		return nil, err
 	}
 
@@ -167,8 +166,7 @@ func (rt *roundTripper) getDialTLSAddr(req *http.Request) string {
 }
 
 func newRoundTripper(browser Browser, dialer ...proxy.ContextDialer) http.RoundTripper {
-	if len(dialer) > 0 {
-
+	if dialer != nil {
 		return &roundTripper{
 			dialer: dialer[0],
 
