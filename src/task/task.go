@@ -265,6 +265,7 @@ func MassFriendTask(in []modules.Instance, interval time.Duration) {
 	if len(id) == 0 {
 		log.Println("No IDS found in tokens.txt..")
 		Return(1)
+		return
 	}
 	dist := len(id) / len(in)
 	over := len(id) % len(in)
