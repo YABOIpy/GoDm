@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/Danny-Dasilva/fhttp"
+	"github.com/zenthangplus/goccm"
+
 	HttpClient "source/src/client"
 )
 
 func (in *Instance) Configuration() ([]Instance, error) {
-	Conf, err := modules.LoadConfig("config.json")
+	cfg, err := modules.LoadConfig("config.json")
 	if err != nil {
 		log.Println("Failed To Load Config")
 		time.Sleep(3 * time.Second)
@@ -20,76 +22,49 @@ func (in *Instance) Configuration() ([]Instance, error) {
 	}
 
 	var (
-		wg        sync.WaitGroup
-		mutex     sync.Mutex
-		Instances []Instance
-		Client    *http.Client
-	)
-	var (
-		routines int
-		proxy    string
-		cfg      = Conf
+		mutex      sync.Mutex
+		Instances  []Instance
+		tokenprops TokenConfig
 	)
 
 	Tokens, TokenData, Proxies := modules.FetchInputData()
 
-	routines = len(Tokens)
+	routines := len(Tokens)
 	if cfg.Mode.Configs.CCManager {
 		routines = cfg.Mode.Configs.MaxRoutines
 	}
-	wg.Add(routines)
+	wg := goccm.New(routines)
 
 	fmt.Print("\033[s")
 
 	for i := 0; i < len(Tokens); i++ {
+		wg.Wait()
 		go func(i int) {
 			defer wg.Done()
+			var proxy string
 
-			cookie, Cstruct := modules.Cookies()
+			cookie := modules.Cookies()
 			Browser := in.CreateBrowser()
-			xprop := in.Xprops(ClientData{
-				Name:    Browser.Name,
-				OS:      Browser.OS,
-				OSVer:   Browser.OSVer,
-				Version: Browser.Version,
-				Agent:   Browser.Agent,
-			})
 
 			fmt.Print("\033[u\033[K")
 			fmt.Printf(CacheLoading, cookie[:20], strings.Split(Tokens[i], ".")[0])
 
-			if len(cfg.Mode.Network.Proxy) != 0 {
+			if len(cfg.Mode.Network.Proxy) != IntNil {
 				proxy = "http://" + cfg.Mode.Network.Proxy
-			} else {
-				proxy = ""
-				if len(Proxies) > 0 {
-					proxy = "http://" + Proxies[i]
+			} else if len(Proxies) != IntNil {
+				proxy = "http://" + Proxies[i]
+			}
+
+			if TokenData != nil {
+				tokenprops = TokenConfig{
+					Email: TokenData[i].Email,
+					Pass:  TokenData[i].Pass,
 				}
 			}
-			CookieSettings := Cstruct.Cookie.Cookies
-			Client, _ = HttpClient.NewClient(HttpClient.Browser{
+			Client, _ := HttpClient.NewClient(HttpClient.Browser{
 				JA3:       cfg.Mode.Network.Ja3,
 				UserAgent: Browser.Agent,
-				Cookies: []HttpClient.Cookie{
-					{Name: "__dcfduid",
-						Value:  Cstruct.Dcfd,
-						Domain: CookieSettings["__dcfduid"].Domain,
-						Secure: CookieSettings["__dcfduid"].Secure,
-						MaxAge: CookieSettings["__dcfduid"].MaxAge,
-					},
-					{Name: "__sdcfduid",
-						Value:  Cstruct.Sdcfd,
-						Domain: CookieSettings["__sdcfduid"].Domain,
-						Secure: CookieSettings["__sdcfduid"].Secure,
-						MaxAge: CookieSettings["__sdcfduid"].MaxAge,
-					},
-					{Name: "__cfruid",
-						Value:  Cstruct.Cfruid,
-						Domain: CookieSettings["__cfruid"].Domain,
-						Secure: CookieSettings["__cfruid"].Secure,
-						MaxAge: CookieSettings["__cfruid"].MaxAge,
-					},
-				},
+				Cookies:   nil,
 			},
 				cfg.Mode.Network.TimeOut,
 				cfg.Mode.Network.Redirect,
@@ -99,23 +74,20 @@ func (in *Instance) Configuration() ([]Instance, error) {
 
 			mutex.Lock()
 			Instances = append(Instances, Instance{
-				TokenProps: TokenConfig{
-					Email: TokenData.Email,
-					Pass:  TokenData.Pass,
-				},
+				Token:         Tokens[i],
+				TokenProps:    tokenprops,
+				TimeZone:      in.TimeZones(),
 				Client:        Client,
 				SClient:       &http.Client{},
-				Xprop:         xprop,
+				Xprop:         in.Xprops(Browser),
 				BrowserClient: Browser,
 				Cookie:        cookie,
-				Token:         Tokens[i],
 				Cfg:           cfg,
 			})
 			mutex.Unlock()
-
 		}(i)
 	}
-	wg.Wait()
+	wg.WaitAllDone()
 
 	return Instances, err
 }
