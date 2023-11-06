@@ -1,6 +1,7 @@
 package modules
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -28,7 +29,9 @@ func (in *Instance) Configuration() ([]Instance, error) {
 	)
 
 	Tokens, TokenData, Proxies := modules.FetchInputData()
-
+	if Tokens == nil {
+		return nil, errors.New("no tokens found in tokens.txt")
+	}
 	routines := len(Tokens)
 	if cfg.Mode.Configs.CCManager {
 		routines = cfg.Mode.Configs.MaxRoutines
