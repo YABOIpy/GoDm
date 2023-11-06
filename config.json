@@ -14,18 +14,13 @@
       "Proxy": "",
       "WebKit": "537.36",
       "Redirect": false,
-      "TimeOut": 50
+      "TimeOut": 60
     },
     "Discord": {
-      "Ver": 2.0,
+      "Ver": 2.2,
       "CapApi": ["", ""],
-      "Presence": ["online", "dnd", "idle"],
+      "Presence": ["online", "dnd", "idle", "offline", "unkown"],
       "Message": [
-        {
-          "Title": "# Hey!",
-          "Body": "> This Message Was sent using",
-          "Link": "> https://github.com/yaboipy/godm"
-        },
         {
           "Title": "# Hello!",
           "Body": "> mind joining my server!",
