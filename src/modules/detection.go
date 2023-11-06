@@ -3,12 +3,14 @@ package modules
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/cast"
 	"io"
 	"log"
 	"strings"
 	"time"
-	
+
 	http "github.com/Danny-Dasilva/fhttp"
+	"github.com/wasilibs/go-re2"
 	shttp "net/http"
 )
 
@@ -16,7 +18,7 @@ func (in *Instance) Browser() (browsers []BrowserData) {
 	browsers = []BrowserData{
 		{
 			Name:     "Chromium",
-			Versions: []string{"116", "115", "114", "113", "112", "111", "110", "109", "108", "107", "106", "105", "104", "103", "102", "101", "100", "99", "98", "97", "96", "95", "94", "93", "92", "91", "90"},
+			Versions: []string{"116.0.0.0", "115.0.0.0", "114.0.0.0", "113.0.0.0", "112.0.0.0", "111.0.0.0", "110.0.0.0", "109.0.0.0", "108.0.0.0", "107.0.0.0", "106.0.0.0", "105.0.0.0", "104.0.0.0", "103.0.0.0", "102.0.0.0", "101.0.0.0", "100.0.0.0", "99.0.0.0", "98.0.0.0", "97.0.0.0", "96.0.0.0", "95.0.0.0", "94.0.0.0", "93.0.0.0", "92.0.0.0", "91.0.0.0", "90.0.0.0"},
 			OSver: map[string][]string{
 				"Windows": {"10", "8.1", "8", "7"},
 				"Mac":     {"11", "10.15", "10.14", "10.13"},
@@ -55,7 +57,7 @@ func (in *Instance) Browser() (browsers []BrowserData) {
 		},
 		{
 			Name:     "Microsoft Edge",
-			Versions: []string{"88", "88", "89", "89", "90", "90", "91", "91", "92", "92", "93", "93", "94", "94", "95", "95", "96", "96", "97", "97", "98", "98", "99", "99", "100", "100", "101", "102", "102", "103", "103", "104", "104", "105", "105", "106", "106", "107", "107", "108", "108", "109", "109", "110", "110", "111", "111", "112", "112", "113", "113", "114", "114", "115", "115", "116", "117", "118"},
+			Versions: []string{"88.0.0.0", "88.0.0.0", "89.0.0.0", "89.0.0.0", "90.0.0.0", "90.0.0.0", "91.0.0.0", "91.0.0.0", "92.0.0.0", "92.0.0.0", "93.0.0.0", "93.0.0.0", "94.0.0.0", "94.0.0.0", "95.0.0.0", "95.0.0.0", "96.0.0.0", "96.0.0.0", "97.0.0.0", "97.0.0.0", "98.0.0.0", "98.0.0.0", "99.0.0.0", "99.0.0.0", "100.0.0.0", "100.0.0.0", "101.0.0.0", "102.0.0.0", "102.0.0.0", "103.0.0.0", "103.0.0.0", "104.0.0.0", "104.0.0.0", "105.0.0.0", "105.0.0.0", "106.0.0.0", "106.0.0.0", "107.0.0.0", "108.0.0.0", "109.0.0.0", "110.0.0.0", "111.0.0.0", "112.0.0.0", "113.0.0.0", "114.0.0.0", "115.0.0.0", "116.0.0.0", "117.0.0.0", "118.0.0.0"},
 			OSver: map[string][]string{
 				"Windows": {"10", "8.1", "8", "7"},
 				"Mac":     {"11", "10.15", "10.14", "10.13"},
@@ -67,16 +69,16 @@ func (in *Instance) Browser() (browsers []BrowserData) {
 		},
 		{
 			Name:     "Opera",
-			Versions: []string{"76.0", "75.0", "74.0", "73.0", "72.0", "71.0", "70.0", "69.0", "68.0", "67.0", "66.0", "65.0"},
+			Versions: []string{"76.0.0.0", "75.0.0.0", "74.0.0.0", "73.0.0.0", "72.0.0.0", "71.0.0.0", "70.0.0.0", "69.0.0.0", "68.0.0.0", "67.0.0.0", "66.0.0.0", "65.0.0.0"},
 			OSver: map[string][]string{
 				"Windows": {"10", "8.1", "8", "7"},
 				"Mac":     {"11", "10.15", "10.14", "10.13"},
 				"Linux":   {"Ubuntu/20", "Debian/10", "Fedora/34"},
 			},
 			UserAgent: map[string]string{
-				"Windows": "Mozilla/5.0 (Windows NT %s; Win64; x64) AppleWebKit/%s (KHTML, like Gecko) Chrome/%s Safari/%s OPR/%s",
-				"Mac":     "Mozilla/5.0 (Macintosh; Intel Mac OS X %s) AppleWebKit/%s (KHTML, like Gecko) Chrome/%s Safari/%s OPR/%s",
-				"Linux":   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/%s (KHTML, like Gecko) Chrome/%s Safari/%s OPR/%s %s",
+				"Windows": "Mozilla/5.0 (Windows NT %s; Win64; x64) AppleWebKit/%s (KHTML, like Gecko) Chrome/%s.0.0 Safari/%s OPR/%s",
+				"Mac":     "Mozilla/5.0 (Macintosh; Intel Mac OS X %s) AppleWebKit/%s (KHTML, like Gecko) Chrome/%s.0.0 Safari/%s OPR/%s",
+				"Linux":   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/%s (KHTML, like Gecko) Chrome/%s Safari/%s.0.0 OPR/%s %s",
 			},
 		},
 	}
@@ -167,6 +169,71 @@ func (in *Instance) UserAgent(Browser BrowserData, data ClientData) Agents {
 	return Agents{Mac: cfg.Mode.Network.Agent, Linux: cfg.Mode.Network.Agent, Windows: cfg.Mode.Network.Agent}
 }
 
+// Capabilities Get discords current capabilities value
+func Capabilities() int {
+	req, err := http.NewRequest("GET",
+		"https://discord.com/assets/"+DiscordDataAsset,
+		nil,
+	)
+	Hd.Header(req, map[string]string{
+		"accept-encoding": "identify",
+	})
+	resp, err := fetchClient.Do(req)
+	if err != nil {
+		log.Println(err)
+		return IntNil
+	}
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return IntNil
+	}
+
+	m := re2.MustCompile(`capabilities:\s*(\d+)`).
+		FindStringSubmatch(string(b))
+
+	if len(m) != IntNil {
+		return cast.ToInt(m[1])
+	}
+	return IntNil
+}
+
+// BuildInfo Get discords current build number
+func BuildInfo() string {
+
+	req, err := http.NewRequest("GET", ""+
+		"https://discord.com/assets/"+DiscordBuildAsset,
+		nil,
+	)
+
+	Hd.Header(req, map[string]string{
+		"accept-encoding": "identify",
+	})
+	resp, err := fetchClient.Do(req)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+
+	reg := re2.MustCompilePOSIX(`Build Number: "\)\.concat\("([0-9]{4,8})"`)
+	m := strings.Split(
+		strings.ReplaceAll(reg.FindAllString(string(b), -1)[0], " ", ""),
+		",",
+	)
+	bn := strings.Split(m[0], `("`)
+
+	return strings.ReplaceAll(bn[len(bn)-1], `"`, ``)
+}
+
 func (in *Instance) CreateBrowser() ClientData {
 	RSeed.GenerateSeed()
 
@@ -204,60 +271,135 @@ func (in *Instance) Captcha(data CapCfg) string {
 		return in.SolveCapMonster(data)
 	case "capsolver":
 		return in.SolveCapSolver(data)
+	case "hcoptcha":
+		return in.SolveHcoptcha(data)
 	}
 	return ""
 }
 
-// i havent checked this yet all captcha docs are very badly written. so is their api wrapper on github
-func (in *Instance) SolveCapSolver(cfg CapCfg) string {
-	s := time.Now()
+func (in *Instance) SolveHcoptcha(cfg CapCfg) string {
 	req, err := http.NewRequest("POST",
-		"https://api.capsolver.com/createTask",
-		modules.Marsh(map[string]string{
-			"ApiKey": cfg.ApiKey,
+		"",
+		modules.Marsh(map[string]interface{}{
+			"api_key":   cfg.ApiKey,
+			"task_type": "hcaptchaEnterprise",
+			"data": map[string]interface{}{
+				// "rqdata": "",  optional, rqdata
+				//"proxy":     "", same thing for timezones. most people will use residential proxies
+				"useragent": in.BrowserClient.Agent,
+				"sitekey":   cfg.SiteKey,
+				"host":      "discord.com",
+			},
 		}),
 	)
 	if err != nil {
-		log.Println(err)
-		return ""
-	}
-	for h, o := range map[string]string{
-		"Content-Type": "application/json",
-	} {
-		req.Header.Set(h, o)
+		return StringNil
 	}
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return ""
+		return StringNil
 	}
-	defer resp.Body.Close()
 
-	var data struct {
-		ErrorId          int    `json:"errorId"`
-		ErrorCode        string `json:"errorCode"`
-		ErrorDescription string `json:"errorDescription"`
-		Status           string `json:"status"`
-		Solution         struct {
-			Text string `json:"text"`
-		} `json:"solution"`
-		TaskId string `json:"taskId"`
-	}
+	defer resp.Body.Close()
+	var data Hcoptcha
 
 	body, err := io.ReadAll(resp.Body)
 	if err = json.Unmarshal(body, &data); err != nil {
 		log.Println(err)
-		return ""
 	}
+	for {
+		rq, er := http.NewRequest("POST",
+			"",
+			modules.Marsh(map[string]interface{}{
+				"api_key": cfg.ApiKey,
+				"task_id": data.TaskId,
+			}),
+		)
+		if er != nil {
+			log.Println(er)
+			return ""
+		}
+		task, er := in.Client.Do(rq)
+		if er != nil {
+			log.Println(er)
+			return ""
+		}
 
-	switch resp.StatusCode {
-	case 200:
-		return data.TaskId
-	default:
-		modules.StrlogE("Failed To Get TaskID", data.ErrorDescription, s)
+		defer task.Body.Close()
+		var dat HcoptchaResponse
+
+		bod, er := io.ReadAll(task.Body)
+		if er = json.Unmarshal(bod, &dat); er != nil {
+			log.Println(er)
+			continue
+		}
+		if dat.Error {
+			log.Println(dat.Task.State)
+			return ""
+		}
+		switch dat.Task.State {
+		case "completed":
+			return dat.Task.CaptchaKey
+		case "processing":
+			time.Sleep(time.Second)
+			continue
+		default:
+			log.Println(dat.Task.State)
+			return ""
+		}
 	}
+}
 
-	return ""
+// i havent checked this yet all captcha docs are very badly written. so is their api wrapper on github
+func (in *Instance) SolveCapSolver(cfg CapCfg) string {
+	//s := time.Now()
+	req, err := http.NewRequest("POST",
+		"https://api.capsolver.com/createTask",
+		modules.Marsh(map[string]string{
+			"clientKey": cfg.ApiKey,
+		}),
+	)
+	if err != nil {
+		log.Println(err)
+		return StringNil
+	}
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return StringNil
+	}
+	defer resp.Body.Close()
+	var data CapSolver
+
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+	for {
+		rq, er := http.NewRequest("POST",
+			"https://api.capsolver.com/getTaskResult",
+			modules.Marsh(map[string]string{
+				"clientKey": cfg.ApiKey,
+				"taskId":    data.TaskId,
+			}),
+		)
+		if er != nil {
+			log.Println(er)
+			return StringNil
+		}
+		task, er := in.Client.Do(rq)
+		if er != nil {
+			log.Println(er)
+			return StringNil
+		}
+		var dat struct{}
+		bod, er := io.ReadAll(task.Body)
+		if er = json.Unmarshal(bod, &dat); er != nil {
+			log.Println(er)
+		}
+
+	}
 }
 
 func (in *Instance) SolveCapMonster(cfg CapCfg) string {
@@ -272,7 +414,7 @@ func (in *Instance) SolveCapMonster(cfg CapCfg) string {
 	)
 	if err != nil {
 		log.Println(err)
-		return ""
+		return StringNil
 	}
 	req.Header.Set("content-type", "application/json")
 	Client := &shttp.Client{}
@@ -280,7 +422,7 @@ func (in *Instance) SolveCapMonster(cfg CapCfg) string {
 	resp, err := Client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return ""
+		return StringNil
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -293,8 +435,8 @@ func (in *Instance) SolveCapMonster(cfg CapCfg) string {
 		log.Println(err)
 	}
 
-	if resp.StatusCode == 200 {
-		for true {
+	if resp.StatusCode == http.StatusOK {
+		for {
 			re, er := shttp.NewRequest("POST",
 				"https://api.capmonster.cloud/getTaskResult",
 				modules.Marsh(map[string]interface{}{
@@ -304,12 +446,12 @@ func (in *Instance) SolveCapMonster(cfg CapCfg) string {
 			)
 			if er != nil {
 				log.Println(err)
-				return ""
+				return StringNil
 			}
 			res, er := Client.Do(re)
 			if er != nil {
 				log.Println(err)
-				return ""
+				return StringNil
 			}
 
 			defer res.Body.Close()
