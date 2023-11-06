@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -29,7 +29,9 @@ func (m *Modules) Menu() {
 		13: "Token Menu",
 		14: "Booster",
 		15: "VoiceChat",
-		16: "Onboarding",
+		16: "SoundBoard",
+		17: "OnBoarding",
+		18: "Server Info",
 	}
 	tkn, _, _ := modules.ReadFile("tokens.txt")
 	//old logo. not going to bother formatting
@@ -71,25 +73,23 @@ func (m *Modules) PrintMenu(options map[int]string) {
 	}
 	sort.Ints(opts)
 
-	numO := len(opts)
-	numC := 2
-	numR := (numO + numC - 1) / numC
+	num := (len(opts) + 2 - 1) / 2
 
-	for row := 0; row < numR; row++ {
-		for col := 0; col < numC; col++ {
-			i := col*numR + row
-			if i < numO {
-				count++
+	for row := 0; row < num; row++ {
+		for col := 0; col < 2; col++ {
+			i := col*num + row
+			if i < len(opts) {
 				optnum := strconv.Itoa(opts[i])
 				if len(optnum) == 1 {
 					optnum = "0" + optnum
 				}
 				fmt.Fprintf(tw, "\t\033[36m[\033[39m%s\033[36m]\033[39m\t%s\t", optnum, options[opts[i]])
+				count++
 			}
 		}
 		fmt.Fprintln(tw)
 	}
-	if count%numC != 0 {
+	if count%2 != 0 {
 		fmt.Fprint(tw, "\t")
 	}
 	tw.Flush()
@@ -97,14 +97,26 @@ func (m *Modules) PrintMenu(options map[int]string) {
 	fmt.Println(sb.String())
 }
 
-func (m *Modules) Cls() {
-	var clearCmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		clearCmd = exec.Command("cmd", "/c", "cls")
-	} else {
-		clearCmd = exec.Command("clear")
-	}
+func PrintStruct(data interface{}) {
+	v := reflect.ValueOf(data)
 
-	clearCmd.Stdout = os.Stdout
-	clearCmd.Run()
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Field(i)
+		fmt.Printf("\u001B[36m[\u001B[39m%s\u001B[36m]\u001B[39m: ",
+			reflect.TypeOf(data).Field(i).Name,
+		)
+		switch f.Kind() {
+		case reflect.Struct:
+			PrintStruct(f.Interface())
+		default:
+			fmt.Println(f.Interface())
+		}
+	}
+}
+
+func (m *Modules) Cls() {
+	var cmd *exec.Cmd
+	cmd = exec.Command("cmd", "/c", "cls")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 }
