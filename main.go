@@ -1,16 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/spf13/cast"
+	"github.com/wasilibs/go-re2"
 	"log"
 	"math/rand"
 	"os"
 	"runtime"
 	"source/src/modules"
 	"source/src/task"
+	"strings"
 	"time"
-
-	"github.com/wasilibs/go-re2"
 )
 
 var (
@@ -38,49 +40,72 @@ func initialize() []modules.Instance {
 }
 
 func LoadChoice(in []modules.Instance) {
+
 	opt := FuncMap{
 		1: func() {
 			var cooldown time.Duration
-			var msg string
-			fmt.Println(modules.MassDmMention)
-			if interval := Mod.InputInt("CoolDown"); interval != 0 {
-				cooldown = time.Duration(interval) + time.Duration(rand.Intn(9)+2)
-			}
-		r:
-			if msg = Mod.Input("Message: "); len(msg) == 0 {
-				cfg, _ := Mod.LoadConfig("config.json")
-				message := cfg.Mode.Discord.Message
-				if message != nil {
-					modules.RandSeed().GenerateSeed()
-					i := rand.Intn(len(message))
-					msg = fmt.Sprintf("%s \n%s \n%s",
-						message[i].Title,
-						message[i].Body,
-						message[i].Link,
-					)
-				} else {
-					log.Println("No Messages Found.")
-					time.Sleep(2 * time.Second)
-					goto r
+
+			switch Mod.InputInt("1: Mass DM \n2: Mass Friend \nChoice") {
+			case 1:
+
+				var msg string
+				fmt.Println(modules.MassDmMention)
+				if interval := Mod.InputInt("CoolDown"); interval != modules.IntNil {
+					cooldown = time.Duration(interval) + time.Duration(rand.Intn(9)+2)
 				}
+			r:
+				if msg = Mod.Input(modules.MessageInput); len(msg) == modules.IntNil {
+					cfg, _ := Mod.LoadConfig("config.json")
+					message := cfg.Mode.Discord.Message
+					if message != nil {
+						modules.RandSeed().GenerateSeed()
+						i := rand.Intn(len(message))
+						msg = fmt.Sprintf("%s\n%s\n%s",
+							message[i].Title,
+							message[i].Body,
+							message[i].Link,
+						)
+						time.Sleep(time.Hour)
+					} else {
+						log.Println("No Messages Found.")
+						time.Sleep(2 * time.Second)
+						goto r
+					}
+				}
+				task.MassDmTask(in, msg, cooldown)
+			case 2:
+				fmt.Println(modules.MassFriendOptionMention)
+				if interval := Mod.InputInt("CoolDown"); interval != modules.IntNil {
+					cooldown = time.Duration(interval) + time.Duration(rand.Intn(9)+2)
+				}
+				if user := Mod.Input("Username: "); user != modules.StringNil {
+					task.StartTask(in, func(c modules.Instance) {
+						c.DisplayName(user)
+					})
+				}
+				if bio := Mod.Input("Bio: "); bio != modules.StringNil {
+					task.StartTask(in, func(c modules.Instance) {
+						c.Bio(bio)
+					})
+				}
+				task.MassFriendTask(in, cooldown)
 			}
-			task.MassDmTask(in, msg, cooldown)
 		},
 		2: func() {
 			ID := Mod.Input("UserID: ")
-			msg := Mod.Input("Message: ")
+			msg := Mod.Input(modules.MessageInput)
 			task.StartTask(in, func(c modules.Instance) {
-				data := Con.CreateChannel(c, ID)
-				if Con.Eligible(c, ID) {
-					Con.Message(c, msg, data.Id, modules.MessageOptions{Loop: true})
+				data := c.CreateChannel(ID)
+				if c.Eligible(ID) {
+					c.Message(msg, data.Id, modules.MessageOptions{Loop: true})
 				}
 			})
 		},
 		3: func() {
 			fmt.Println(modules.InServerMention)
-			CID := Mod.Input("Channel ID: ")
+			CID := Mod.Input(modules.ChannelInput)
 			MID := Mod.Input("Message ID: ")
-			data := Mod.MessageData(in[0], CID, MID)
+			data := in[0].MessageData(CID, MID)
 			for _, v := range data {
 				for j, k := range v.Reactions {
 					fmt.Printf("\u001B[36m| [\u001B[39m%d\u001B[36m]\u001B[39m %s ", j, k.Emoji.Name)
@@ -89,21 +114,24 @@ func LoadChoice(in []modules.Instance) {
 			fmt.Println()
 			emoji := data[0].Reactions[Mod.InputInt("Choice")].Emoji.Name
 			task.StartTask(in, func(c modules.Instance) {
-				Con.Reaction(c, CID, MID, emoji)
+				c.Reaction(CID, MID, emoji)
 			})
 		},
 		4: func() {
 			typ := Mod.InputInt("1: Direct API\n2: Add Server API\nChoice")
-			inv := Mod.Input("discord.gg/")
+			inv := Mod.Input(modules.InviteInput)
 			os.Truncate("data/joined.txt", 0)
 			task.StartTask(in, func(c modules.Instance) {
-				d, _, con := Ws.Connect(c.Token, c)
+				d, con, err := Ws.Connect(c.Token, &c)
+				if err != nil {
+					return
+				}
 				defer con.Ws.Close()
-				Con.Joiner(c, inv, d.Data.SessionID, typ)
+				c.Joiner(inv, d.Data.SessionID, typ)
 			})
 			j, _, _ := Mod.ReadFile("data/joined.txt")
-			if len(j) != len(in) && len(j) > 0 {
-				if Mod.Input(modules.WriteJoinedMention) == "y" {
+			if len(j) != len(in) && len(j) > modules.IntNil {
+				if Mod.InputBool(modules.WriteJoinedMention) {
 					os.Truncate("tokens.txt", 0)
 					Mod.WriteFileArray("tokens.txt", j)
 					main()
@@ -111,37 +139,36 @@ func LoadChoice(in []modules.Instance) {
 			}
 		},
 		5: func() {
-			ID := Mod.Input("Guild ID: ")
+			ID := Mod.Input(modules.GuildInput)
 			task.StartTask(in, func(c modules.Instance) {
-				Con.Leaver(c, ID)
+				c.Leaver(ID)
 			})
 		},
 		6: func() {
 			fmt.Println(modules.InServerMention)
-			ID := Mod.Input("Guild ID: ")
-			inv := Mod.Input("discord.gg/")
+			inv := Mod.Input(modules.InviteInput)
+			ID := in[0].GuildJoinData(inv).GuildId
 			task.StartTask(in, func(c modules.Instance) {
-				Con.MemberVerify(c, ID, inv)
+				c.MemberVerify(ID, inv)
 			})
 		},
 		7: func() {
-			// Should be clear enough.. fmt.Println(modules.InServerMention)
-			msg := Mod.Input("Message: ")
-			ID := Mod.Input("Channel ID:")
+			msg := Mod.Input(modules.MessageInput)
+			ID := Mod.Input(modules.ChannelInput)
 			task.StartTask(in, func(c modules.Instance) {
-				Con.Message(c, msg, ID, modules.MessageOptions{Loop: true})
+				c.Message(msg, ID, modules.MessageOptions{Loop: true})
 			})
 		},
 		8: func() {
-			Token := Mod.Input("Token:")
-			GID := Mod.Input("Guild ID: ")
-			CID := Mod.Input("Channel ID: ")
-			task.ScrapeTask(Token, in[0], GID, CID)
+			task.ScrapeTask(in[0],
+				Mod.Input(modules.GuildInput),
+				Mod.Input(modules.ChannelInput),
+			)
 		},
 		9: func() { task.CheckerTask(in) },
 		10: func() {
-			msg := Mod.Input("Message: ")
-			ID := Mod.Input("Channel ID:")
+			msg := Mod.Input(modules.MessageInput)
+			ID := Mod.Input(modules.ChannelInput)
 			ids, _, _ := Mod.ReadFile("data/ids.txt")
 			options := modules.MessageOptions{
 				Mping:  true,
@@ -150,14 +177,13 @@ func LoadChoice(in []modules.Instance) {
 				Amount: Mod.InputInt("Ping Per Message"),
 			}
 			task.StartTask(in, func(c modules.Instance) {
-				Con.Message(c, msg, ID, options)
+				c.Message(msg, ID, options)
 			})
 		},
 		11: func() {
 			//will leave indexing like this. i have yet to see more data.
-			link := Mod.Input("Message Link: ")
-			ID := re2.MustCompile(`\d+`).FindAllString(link, -1)
-			data := Mod.MessageData(in[0], ID[1], ID[2])
+			ID := re2.MustCompile(`\d+`).FindAllString(Mod.Input("Message Link: "), -1)
+			data := in[0].MessageData(ID[1], ID[2])
 			for i, d := range data {
 				for j, b := range d.Components[i].Components {
 					fmt.Printf("\033[36m| [\033[39m%d\u001B[36m]\u001B[39m %s %s ", j, b.Emoji.Name, b.Label)
@@ -167,13 +193,13 @@ func LoadChoice(in []modules.Instance) {
 
 			opt := &modules.ButtonOptions{
 				Button:  data[0].Components[0].Components[Mod.InputInt("Choice")], // <-
-				Type:    3,
+				Type:    Mod.InputInt("Button Type"),
 				GuildID: ID[0],
 			}
 			task.StartTask(in, func(c modules.Instance) {
-				wsd, _, _ := Ws.Connect(c.Token, c)
+				wsd, _, _ := Ws.Connect(c.Token, &c)
 				opt.SessionID = wsd.Data.SessionID
-				Con.Buttons(c, data[0], *opt)
+				c.Buttons(data[0], *opt)
 			})
 		},
 		12: func() {
@@ -183,11 +209,11 @@ func LoadChoice(in []modules.Instance) {
 			}
 			disc := Mod.Input(data.Username + "#")
 			data.Discrim = nil
-			if disc != "" {
+			if disc != modules.StringNil {
 				data.Discrim = disc
 			}
 			task.StartTask(in, func(c modules.Instance) {
-				Con.Friend(c, data)
+				c.Friend(data)
 			})
 		},
 		13: func() {
@@ -196,12 +222,12 @@ func LoadChoice(in []modules.Instance) {
 			case 1:
 				user := Mod.Input("Username: ")
 				task.StartTask(in, func(c modules.Instance) {
-					Con.DisplayName(c, user)
+					c.DisplayName(user)
 				})
 			case 2:
 				bio := Mod.Input("Bio: ")
 				task.StartTask(in, func(c modules.Instance) {
-					Con.Bio(c, bio)
+					c.Bio(bio)
 				})
 			case 3:
 				fmt.Println(modules.BandWidthMention)
@@ -211,9 +237,12 @@ func LoadChoice(in []modules.Instance) {
 				}
 				img := Mod.ReadDirectory("data/pfp", "png")
 				task.StartTask(in, func(c modules.Instance) {
-					_, _, conn := Ws.Connect(c.Token, c)
-					defer conn.Ws.Close()
-					Con.Avatar(c, img[rand.Intn(len(img))])
+					_, con, err := Ws.Connect(c.Token, &c)
+					if err != nil {
+						return
+					}
+					defer con.Ws.Close()
+					c.Avatar(img[rand.Intn(len(img))])
 				})
 			case 4:
 				var data []string
@@ -221,20 +250,20 @@ func LoadChoice(in []modules.Instance) {
 				fmt.Println(modules.PasswordFieldMention)
 				password := Mod.Input("Password: ")
 				task.StartTask(in, func(c modules.Instance) {
-					data = append(data, Con.Password(c, password))
+					data = append(data, c.Password(password))
 				})
 				os.Truncate("tokens.txt", 0)
 				Mod.WriteFileArray("tokens.txt", data)
 			case 5:
 				text := Mod.Input("Pronouns: ")
 				task.StartTask(in, func(c modules.Instance) {
-					Con.Pronouns(c, text)
+					c.Pronouns(text)
 				})
 			case 6:
 				fmt.Println(modules.TokenFormatMention)
 				user := Mod.Input("Username: ")
 				task.StartTask(in, func(c modules.Instance) {
-					Con.Username(c, user)
+					c.Username(user)
 				})
 			case 7:
 				// TODO: take combos from txt file
@@ -242,32 +271,164 @@ func LoadChoice(in []modules.Instance) {
 				// task.StartTask(in, func(c modules.Instance) {
 				// })
 				fmt.Println("Coming Soon..")
+			case 8:
+				fmt.Println(modules.RGBMention)
+				clr := strings.Split(fmt.Sprint(Mod.Input("Input RGB: ")), ",")
+				task.StartTask(in, func(c modules.Instance) {
+					c.ChangeBanner(modules.RGB(
+						cast.ToInt(clr[0]), cast.ToInt(clr[1]), cast.ToInt(clr[2])),
+					)
+				})
+			case 9:
+				task.StartTask(in, func(c modules.Instance) {
+					for _, d := range c.OpenChannels() {
+						c.CloseDM(d.Id)
+					}
+					for _, d := range c.Friends() {
+						c.RemoveFriend(d)
+					}
+					for _, d := range c.Guilds() {
+						time.Sleep(850 * time.Millisecond)
+						c.Leaver(d.Id)
+					}
+				})
+			case 10:
+				for {
+					c := in[0]
+					_, ws, _ := Ws.Connect(in[0].Token, &c)
+					var data modules.WsResp
+
+					//for _, d := range Mod.Guilds(c) {
+					ws.Ws.WriteJSON(map[string]interface{}{
+						"op": 8,
+						"d": map[string]interface{}{
+							"guild_id": []string{
+								"125440014904590336",
+							},
+							"presences": false,
+						}})
+					_, b, _ := ws.Ws.ReadMessage()
+					json.Unmarshal(b, &data)
+					fmt.Println(data.Name)
+					if data.Name == modules.EventMessageCreate {
+						fmt.Println(data.Data.Message.Content, data.Data.Message.MessageId)
+						fmt.Println(data.Data.Message)
+					}
+					//Mod.FetchMessages(Mod.Guild(d.Id).Id, 100)
+					//}
+				}
 			}
 		},
 		14: func() {
-			ID := Mod.Input("Guild ID: ")
+			ID := Mod.Input(modules.GuildInput)
 			task.StartTask(in, func(c modules.Instance) {
-				Con.Boost(c, ID)
+				c.Boost(ID)
 			})
 		},
 		15: func() {
 			opt := modules.VcOptions{
-				GID:  Mod.Input("Guild ID: "),
-				CID:  Mod.Input("Channel ID: "),
+				GID:  Mod.Input(modules.GuildInput),
+				CID:  Mod.Input(modules.ChannelInput),
 				Mute: Mod.InputBool("Mute"),
 				Deaf: Mod.InputBool("Deafen"),
 			}
 			task.StartTask(in, func(c modules.Instance) {
-				Con.VoiceChat(c, opt)
+				c.VoiceChat(opt)
 			})
 		},
 		16: func() {
-			fmt.Println("Coming Soon..")
+			CID := Mod.Input(modules.ChannelInput)
+			opt := map[int]modules.SoundBoardOptions{
+				0: {"1", "🦆"}, 1: {"2", "🔊"},
+				2: {"3", "🦗"}, 3: {"4", "👏"},
+				4: {"5", "🎺"}, 5: {"6", "🥁"},
+			}
+			for j, k := range []int{0, 1, 2, 3, 4, 5} { // i could use PrintMenu but i like the look of this more.
+				if v, ok := opt[k]; ok {
+					fmt.Printf("\u001B[36m| [\u001B[39m%d\u001B[36m]\u001B[39m %s ", j, v.Emoji)
+				}
+			}
+			sound := opt[Mod.InputInt("\nChoice")]
+			ok := Mod.InputBool("Loop")
+			task.StartTask(in, func(c modules.Instance) {
+			l:
+				c.SoundBoard(CID, sound)
+				if ok {
+					goto l
+				}
+			})
+		},
+		17: func() {
+			var opt []string
+			var verify bool
+
+			inv := Mod.Input(modules.InviteInput)
+			guild := in[0].GuildJoinData(inv)
+			data := in[0].OnboardingData(guild.GuildId)
+
+			if Mod.Contains(guild.Guild.Features, modules.MemberVerificationGateEnabled) {
+				verify = Mod.InputBool("Server Has Member Verification. Verify?")
+			}
+			if !Mod.Contains(guild.Guild.Features, modules.GuildOnboarding) {
+				fmt.Println("Server Doesn't Have an OnBoarding Prompt")
+				return
+			}
+			for _, d := range data.Prompts {
+				if d.Required {
+					fmt.Printf("\u001B[36m[\u001B[39m%s\u001B[36m]\u001B[39m:\n", d.Title)
+					for i, o := range d.Options {
+						fmt.Printf("%d: (%s)=%s\n", i, o.Title, o.Description)
+					}
+					opt = append(opt, d.Options[Mod.InputInt("Choice")].Id)
+				}
+			}
+			task.StartTask(in, func(c modules.Instance) {
+				c.OnBoard(guild.GuildId, opt)
+				if verify {
+					c.MemberVerify(guild.GuildId, inv)
+				}
+			})
+		},
+		18: func() {
+			switch Mod.InputInt("1: Server Info \n2: In Guild Checker \nOption") {
+			case 1:
+				s := time.Now()
+				data := in[0].GuildJoinData(Mod.Input(modules.InviteInput))
+				if data.Message != modules.StringNil {
+					Mod.StrlogE("Failed To Fetch Data", data.Message, s)
+					return
+				}
+				modules.PrintStruct(data)
+				Mod.Input("Press Enter To Continue")
+			case 2:
+				var i []string
+				GID := Mod.Input(modules.GuildInput)
+				task.StartTask(in, func(c modules.Instance) {
+					s := time.Now()
+					data := c.Guild(GID)
+					switch len(data.Id) {
+					case 0:
+						Mod.StrlogE(fmt.Sprintf("\u001B[31m[\u001B[39m%s\u001B[31m]\u001B[39m", Mod.HalfToken(c.Token, 0)), "Not In Server: "+GID, s)
+					default:
+						Mod.StrlogV(fmt.Sprintf("\u001B[32m[\u001B[39m%s\u001B[32m]\u001B[39m", Mod.HalfToken(c.Token, 0)), "In Server: "+GID, s)
+						i = append(i, c.Token)
+					}
+				})
+				if len(i) != len(in) && len(i) > modules.IntNil {
+					if Mod.InputBool(modules.WriteInServerMention) {
+						os.Truncate("tokens.txt", 0)
+						Mod.WriteFileArray("tokens.txt", i)
+						main()
+					}
+				}
+			default:
+				return
+			}
 		},
 	}
 	for {
 		choice := Mod.InputInt("Choice")
-		if choice == 0 {
+		if choice == modules.IntNil {
 			//restart the client
 			runtime.GC()
 			Mod.Cls()
@@ -282,7 +443,3 @@ func LoadChoice(in []modules.Instance) {
 		}
 	}
 }
-
-// TODO: Options {
-// onboarding + captcha support
-//}
