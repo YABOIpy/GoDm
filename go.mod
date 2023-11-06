@@ -7,7 +7,9 @@ require (
 	github.com/Danny-Dasilva/utls v0.0.0-20220604023528-30cb107b834e
 	github.com/andybalholm/brotli v1.0.5
 	github.com/gorilla/websocket v1.5.0
+	github.com/spf13/cast v1.5.1
 	github.com/wasilibs/go-re2 v1.3.0
+	github.com/zenthangplus/goccm v1.1.3
 	golang.org/x/net v0.11.0
 )
 
