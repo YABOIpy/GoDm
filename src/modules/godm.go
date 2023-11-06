@@ -14,24 +14,23 @@ import (
 	"github.com/Danny-Dasilva/fhttp"
 )
 
-func (*Instance) Joiner(in Instance, invite, session string, typ int) {
+func (in *Instance) Joiner(invite, session string, typ int) {
 	s := time.Now()
 	var (
 		captcha, rqtoken string
-		payload map[string]string
-		ContextData []byte
-		Count int
+		ContextData      []byte
+		Count            int
 	)
 retry:
-	payload = map[string]string{"session_id": session}
-	if len(captcha) != 0 {
+	payload := map[string]string{"session_id": session}
+	if len(captcha) > IntNil {
 		payload = map[string]string{
-			"captcha_key": captcha,
+			"captcha_key":     captcha,
 			"captcha_rqtoken": rqtoken,
-			"session_id": session,
+			"session_id":      session,
 		}
-	} 
-	if typ != 1{
+	}
+	if typ != 1 {
 		req, err := http.NewRequest("GET", fmt.Sprintf(
 			"https://discord.com/api/v9/invites/%s?inputValue=%s&with_counts=true&with_expiration=true", invite, invite),
 			nil,
@@ -39,7 +38,7 @@ retry:
 		if err != nil {
 			log.Println(err)
 		}
-	
+
 		Hd.Header(req, map[string]string{
 			"authorization":      in.Token,
 			"cookie":             in.Cookie,
@@ -47,7 +46,7 @@ retry:
 			"referer":            "https://discord.com/channels/@me",
 			"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 			"sec-ch-ua":          in.SecUA(in),
-			"x-discord-timezone": in.TimeZones(),
+			"x-discord-timezone": in.TimeZone,
 			"x-super-properties": in.Xprop,
 		})
 		resp, err := in.Client.Do(req)
@@ -55,16 +54,15 @@ retry:
 			log.Println(err)
 			return
 		}
-	
+
 		var data JoinReq
 		defer resp.Body.Close()
-	
+
 		body, err := io.ReadAll(resp.Body)
-		if err != nil {
+		if err = json.Unmarshal(body, &data); err != nil {
 			log.Println(err)
 		}
-		json.Unmarshal(body, &data)
-	
+
 		ContextData, err = json.Marshal(JoinContext{
 			Location:            "Join Guild",
 			LocationGuildId:     data.Guild.Id,
@@ -85,18 +83,19 @@ retry:
 	}
 
 	Hd.Header(req2, map[string]string{
-		"authorization":        in.Token,
-		"cookie":               in.Cookie,
-		"user-agent":           in.BrowserClient.Agent,
-		"referer":              "https://discord.com/",
-		"sec-ch-ua-platform":   in.Quote(in.BrowserClient.OS),
-		"sec-ch-ua":            in.SecUA(in),
-		"x-discord-timezone":   in.TimeZones(),
-		"x-super-properties":   in.Xprop,
+		"authorization":      in.Token,
+		"content-length":     "49",
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"referer":            "https://discord.com/",
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
 	})
-	if typ != 1{
+	if typ != 1 {
 		req2.Header.Set("x-context-properties", base64.StdEncoding.EncodeToString(ContextData))
-		req2.Header.Set("referer", "https://discord.com/channels/@me",)
+		req2.Header.Set("referer", "https://discord.com/channels/@me")
 	}
 	resp2, err := in.Client.Do(req2)
 	if err != nil {
@@ -154,7 +153,7 @@ retry:
 	}
 }
 
-func (*Instance) Leaver(in Instance, ID string) {
+func (in *Instance) Leaver(ID string) {
 	s := time.Now()
 	req, err := http.NewRequest("DELETE",
 		"https://discord.com/api/v9/users/@me/guilds/"+ID,
@@ -172,7 +171,7 @@ func (*Instance) Leaver(in Instance, ID string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
 		"referer":            "https://discord.com/channels/@me/" + ID,
 	})
@@ -192,26 +191,27 @@ func (*Instance) Leaver(in Instance, ID string) {
 	}
 }
 
-func (*Instance) Message(in Instance, msg, ID string, opt MessageOptions) (int, []byte) {
-	var message, ping string
-	message = msg
+func (in *Instance) Message(msg, ID string, opt MessageOptions) (int, []byte) {
+	var count int
+
+	message := msg
 	for {
 		if opt.Mping {
-			ping = ""
-			users := ReturnRandomArray(opt.IDs, opt.Amount)
-			for _, user := range users {
+			var ping string
+			for _, user := range ReturnRandomArray(opt.IDs, opt.Amount) {
 				ping += fmt.Sprintf("<@%s>", user)
 			}
 			message = msg + " | " + ping
 		}
-
+	retry:
 		payload := map[string]interface{}{
-			"content": message,
-			"flags":   0,
-			"nonce":   modules.Nonce(),
-			"tts":     false,
+			"content":             message,
+			"flags":               0,
+			"mobile_network_type": "unknown",
+			"nonce":               modules.Nonce(),
+			"tts":                 false,
 		}
-		if len(opt.Captcha) != 0 {
+		if len(opt.Captcha) != IntNil {
 			payload["captcha"] = opt.Captcha
 		}
 
@@ -232,7 +232,7 @@ func (*Instance) Message(in Instance, msg, ID string, opt MessageOptions) (int, 
 			"referer":            "https://discord.com/channels/" + ID,
 			"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 			"sec-ch-ua":          in.SecUA(in),
-			"x-discord-timezone": in.TimeZones(),
+			"x-discord-timezone": in.TimeZone,
 			"x-super-properties": in.Xprop,
 		})
 
@@ -258,11 +258,21 @@ func (*Instance) Message(in Instance, msg, ID string, opt MessageOptions) (int, 
 			}
 		default:
 			if strings.Contains(string(body), "captcha_sitekey") {
-				modules.StrlogE("Captcha", resp.Status, s)
+				if in.Cfg.Mode.Configs.Solver {
+					modules.StrlogR(fmt.Sprintf("%s[%s%d%s]%s %s", clr, bg, count, rb, clr, "Captcha"), "Solving..", s)
+					opt.Captcha = in.Captcha(CapCfg{
+						ApiKey:  in.Cfg.Mode.Discord.CapAPI[1],
+						SiteKey: data.SiteKey,
+						PageURL: "https://discord.com",
+					})
+					count++
+					goto retry
+				} else {
+					modules.StrlogE("Captcha", resp.Status, s)
+				}
 			} else {
 				modules.StrlogE("Failed", string(body), s)
 			}
-
 		}
 		if !opt.Loop {
 			return resp.StatusCode, body
@@ -299,7 +309,7 @@ func (in *Instance) Check() (int, time.Time) {
 	return resp.StatusCode, s
 }
 
-func (*Instance) Friend(in Instance, data FriendReq) {
+func (in *Instance) Friend(data FriendReq) (int, []byte) {
 	s := time.Now()
 
 	var Discrim interface{}
@@ -326,7 +336,7 @@ func (*Instance) Friend(in Instance, data FriendReq) {
 		"user-agent":           in.BrowserClient.Agent,
 		"sec-ch-ua-platform":   in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":            in.SecUA(in),
-		"x-discord-timezone":   in.TimeZones(),
+		"x-discord-timezone":   in.TimeZone,
 		"referer":              "https://discord.com/channels/@me",
 		"x-context-properties": "eyJsb2NhdGlvbiI6IkFkZCBGcmllbmQifQ==", //{"location":"Add Friend"}
 		"x-super-properties":   in.Xprop,
@@ -351,13 +361,14 @@ func (*Instance) Friend(in Instance, data FriendReq) {
 	case 429:
 		json.Unmarshal(body, &dat)
 		in.TokenProps.RateLimit = dat.Retry
-		modules.Sleep(time.Duration(dat.Retry), in)
 	default:
 		modules.StrlogE("Failed To Send", string(body), s)
 	}
+
+	return resp.StatusCode, body
 }
 
-func (*Instance) MemberVerify(in Instance, ID, invite string) {
+func (in *Instance) MemberVerify(ID, invite string) {
 	s := time.Now()
 	req, err := http.NewRequest("GET", fmt.Sprintf(
 		"https://discord.com/api/v9/guilds/%s/member-verification?with_guild=false&invite_code=%s", ID, invite),
@@ -373,9 +384,9 @@ func (*Instance) MemberVerify(in Instance, ID, invite string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
-		"referer":            "https://discord.com/channels/%s" + ID,
+		"referer":            "https://discord.com/channels/" + ID,
 	})
 
 	resp, err := in.Client.Do(req)
@@ -410,7 +421,7 @@ func (*Instance) MemberVerify(in Instance, ID, invite string) {
 			"user-agent":         in.BrowserClient.Agent,
 			"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 			"sec-ch-ua":          in.SecUA(in),
-			"x-discord-timezone": in.TimeZones(),
+			"x-discord-timezone": in.TimeZone,
 			"x-super-properties": in.Xprop,
 			"referer":            "https://discord.com/channels/" + ID,
 		})
@@ -438,7 +449,7 @@ func (*Instance) MemberVerify(in Instance, ID, invite string) {
 
 }
 
-func (*Instance) Reaction(in Instance, CID, MID, emoji string) {
+func (in *Instance) Reaction(CID, MID, emoji string) {
 	s := time.Now()
 	req, err := http.NewRequest("PUT", fmt.Sprintf(
 		"https://discord.com/api/v9/channels/%s/messages/%s/reactions/%s/", CID, MID, emoji)+"%40me?location=Message&type=0",
@@ -455,7 +466,7 @@ func (*Instance) Reaction(in Instance, CID, MID, emoji string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
 		"referer":            "https://discord.com/channels/",
 	})
@@ -475,7 +486,7 @@ func (*Instance) Reaction(in Instance, CID, MID, emoji string) {
 	}
 }
 
-func (*Instance) DisplayName(in Instance, username string) {
+func (in *Instance) DisplayName(username string) {
 	s := time.Now()
 	req, err := http.NewRequest("PATCH",
 		"https://discord.com/api/v9/users/@me",
@@ -493,9 +504,9 @@ func (*Instance) DisplayName(in Instance, username string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
-		"referer":            "https://discord.com/channels/@me/",
+		"referer":            "https://discord.com/channels/@me",
 	})
 	resp, err := in.Client.Do(req)
 	if err != nil {
@@ -513,7 +524,7 @@ func (*Instance) DisplayName(in Instance, username string) {
 	}
 }
 
-func (*Instance) Username(in Instance, username string) {
+func (in *Instance) Username(username string) {
 	s := time.Now()
 	req, err := http.NewRequest("PATCH",
 		"https://discord.com/api/v9/users/@me",
@@ -532,7 +543,7 @@ func (*Instance) Username(in Instance, username string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
 		"Referer":            "https://discord.com/channels/@me",
 	})
@@ -552,12 +563,12 @@ func (*Instance) Username(in Instance, username string) {
 	}
 }
 
-func (*Instance) Pronouns(in Instance, pronoun string) {
+func (in *Instance) Pronouns(Pronoun string) {
 	s := time.Now()
 	req, err := http.NewRequest("PATCH",
 		"https://discord.com/api/v9/users/%40me/profile",
 		modules.Marsh(map[string]string{
-			"pronouns": pronoun,
+			"pronouns": Pronoun,
 		}),
 	)
 	if err != nil {
@@ -570,9 +581,9 @@ func (*Instance) Pronouns(in Instance, pronoun string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
-		"referer":            "https://discord.com/channels/@me/",
+		"referer":            "https://discord.com/channels/@me",
 	})
 	resp, err := in.Client.Do(req)
 	if err != nil {
@@ -586,13 +597,13 @@ func (*Instance) Pronouns(in Instance, pronoun string) {
 	}
 	switch resp.StatusCode {
 	case 200:
-		modules.StrlogV("Changed Pronouns", pronoun, s)
+		modules.StrlogV("Changed Pronouns", Pronoun, s)
 	default:
 		modules.StrlogE("Failed To Change Pronouns", string(body), s)
 	}
 }
 
-func (*Instance) Bio(in Instance, bio string) {
+func (in *Instance) Bio(bio string) {
 	s := time.Now()
 	req, err := http.NewRequest("PATCH",
 		"https://discord.com/api/v9/users/%40me/profile",
@@ -610,9 +621,9 @@ func (*Instance) Bio(in Instance, bio string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
-		"referer":            "https://discord.com/channels/@me/",
+		"referer":            "https://discord.com/channels/@me",
 	})
 	resp, err := in.Client.Do(req)
 	if err != nil {
@@ -632,7 +643,7 @@ func (*Instance) Bio(in Instance, bio string) {
 	}
 }
 
-func (*Instance) Avatar(in Instance, pfp string) {
+func (in *Instance) Avatar(pfp string) {
 	s := time.Now()
 	req, err := http.NewRequest("PATCH",
 		"https://discord.com/api/v9/users/@me",
@@ -645,15 +656,14 @@ func (*Instance) Avatar(in Instance, pfp string) {
 		return
 	}
 	Hd.Header(req, map[string]string{
-		"authorization":        in.Token,
-		"cookie":               in.Cookie,
-		"user-agent":           in.BrowserClient.Agent,
-		"sec-ch-ua-platform":   in.Quote(in.BrowserClient.OS),
-		"sec-ch-ua":            in.SecUA(in),
-		"x-discord-timezone":   in.TimeZones(),
-		"x-context-properties": "eyJsb2NhdGlvbiI6IlF1aWNrIE1lc3NhZ2UgSW5wdXQifQ==", //{"location":"Quick Message Input"}
-		"x-super-properties":   in.Xprop,
-		"referer":              "https://discord.com/channels/@me/",
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+		"referer":            "https://discord.com/channels/@me",
 	})
 	resp, err := in.Client.Do(req)
 	if err != nil {
@@ -672,7 +682,7 @@ func (*Instance) Avatar(in Instance, pfp string) {
 	}
 }
 
-func (*Instance) Password(in Instance, pass string) string {
+func (in *Instance) Password(pass string) string {
 	s := time.Now()
 
 	if len(pass) == 0 {
@@ -695,9 +705,9 @@ func (*Instance) Password(in Instance, pass string) string {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
-		"referer":            "https://discord.com/channels/@me/",
+		"referer":            "https://discord.com/channels/@me",
 	})
 	resp, err := in.Client.Do(req)
 	if err != nil {
@@ -716,7 +726,7 @@ func (*Instance) Password(in Instance, pass string) string {
 		return fmt.Sprintf(TokenFormat, data.Email, pass, data.Token)
 	case 429:
 		in.TokenProps.RateLimit = data.Retry
-		modules.Sleep(time.Duration(data.Retry), in)
+
 	default:
 		modules.StrlogE("Failed To Change Password", string(body), s)
 		return fmt.Sprintf(TokenFormat, in.TokenProps.Email, in.TokenProps.Pass, in.Token)
@@ -724,7 +734,50 @@ func (*Instance) Password(in Instance, pass string) string {
 	return fmt.Sprintf(TokenFormat, in.TokenProps.Email, in.TokenProps.Pass, in.Token)
 }
 
-func (*Instance) CreateChannel(in Instance, ID string) DmChannel {
+func (in *Instance) ChangeBanner(RGB int) {
+	s := time.Now()
+	req, err := http.NewRequest("PATCH",
+		"https://discord.com/api/v9/users/%40me/profile",
+		modules.Marsh(map[string]interface{}{
+			"accent_color": RGB,
+		}),
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+		"referer":            "https://discord.com/channels/@me",
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	defer resp.Body.Close()
+	var data DmChannel
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+
+	switch resp.StatusCode {
+	case 200:
+		modules.StrlogV("Changed Banner", fmt.Sprint(RGB), s)
+	default:
+		modules.StrlogE("Failed To Change Banner", string(body), s)
+	}
+}
+
+func (in *Instance) CreateChannel(ID string) DmChannel {
 	s := time.Now()
 	req, err := http.NewRequest("POST",
 		"https://discord.com/api/v9/users/@me/channels",
@@ -742,7 +795,7 @@ func (*Instance) CreateChannel(in Instance, ID string) DmChannel {
 		"user-agent":           in.BrowserClient.Agent,
 		"sec-ch-ua-platform":   in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":            in.SecUA(in),
-		"x-discord-timezone":   in.TimeZones(),
+		"x-discord-timezone":   in.TimeZone,
 		"x-context-properties": "eyJsb2NhdGlvbiI6IlF1aWNrIE1lc3NhZ2UgSW5wdXQifQ==", //{"location":"Quick Message Input"}
 		"x-super-properties":   in.Xprop,
 		"referer":              "https://discord.com/channels/",
@@ -765,7 +818,6 @@ func (*Instance) CreateChannel(in Instance, ID string) DmChannel {
 		return data
 	case 429:
 		in.TokenProps.RateLimit = data.Retry
-		modules.Sleep(time.Duration(data.Retry), in)
 	default:
 		modules.StrlogE("Failed To Get Channel", string(body), s)
 	}
@@ -773,7 +825,79 @@ func (*Instance) CreateChannel(in Instance, ID string) DmChannel {
 	return DmChannel{}
 }
 
-func (*Instance) Eligible(in Instance, ID string) bool {
+func (in *Instance) RemoveFriend(data Friend) {
+	s := time.Now()
+	req, err := http.NewRequest("DELETE",
+		"https://discord.com/api/v9/users/@me/relationships/"+data.Id,
+		nil,
+	)
+	if err != nil {
+		return
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":        in.Token,
+		"cookie":               in.Cookie,
+		"user-agent":           in.BrowserClient.Agent,
+		"sec-ch-ua-platform":   in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":            in.SecUA(in),
+		"x-discord-timezone":   in.TimeZone,
+		"x-super-properties":   in.Xprop,
+		"x-content-properties": "eyJsb2NhdGlvbiI6IkZyaWVuZHMifQ==", // {"location":"Friends"}
+		"referer":              "https://discord.com/channels/@me",
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		modules.StrlogV("Removed Friend", data.User.Username, s)
+	case 429:
+		modules.StrlogR("RateLimited", resp.Status, s)
+	default:
+		modules.StrlogE("", resp.Status, s)
+	}
+}
+
+func (in *Instance) CloseDM(ID string) {
+	s := time.Now()
+	req, err := http.NewRequest("DELETE", fmt.Sprintf(
+		"https://discord.com/api/v9/channels/%s?silent=false", ID),
+		nil,
+	)
+	if err != nil {
+		return
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+		"referer":            "https://discord.com/channels/@me",
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		modules.StrlogV("Closed DM", ID, s)
+	case 429:
+		modules.StrlogR("RateLimited", resp.Status, s)
+		time.Sleep(2)
+	default:
+		modules.StrlogE("Failed", resp.Status, s)
+	}
+}
+
+func (in *Instance) Eligible(ID string) bool {
 	req, err := http.NewRequest("POST", fmt.Sprintf(
 		"https://discord.com/api/v9/users/@me/referrals/%s/preview", ID),
 		nil,
@@ -787,9 +911,9 @@ func (*Instance) Eligible(in Instance, ID string) bool {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
-		"referer":            "https://discord.com/channels/@me/",
+		"referer":            "https://discord.com/channels/@me",
 	})
 	resp, err := in.Client.Do(req)
 	if err != nil {
@@ -815,7 +939,7 @@ func (*Instance) Eligible(in Instance, ID string) bool {
 	return true
 }
 
-func (*Instance) Buttons(in Instance, data MessageResp, opt ButtonOptions) {
+func (in *Instance) Buttons(data MessageResp, opt ButtonOptions) {
 	s := time.Now()
 	req, err := http.NewRequest("POST",
 		"https://discord.com/api/v9/interactions",
@@ -845,7 +969,7 @@ func (*Instance) Buttons(in Instance, data MessageResp, opt ButtonOptions) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
 		"referer":            fmt.Sprintf("https://discord.com/channels/%s/%s", opt.GuildID, data.ChannelID),
 	})
@@ -862,20 +986,20 @@ func (*Instance) Buttons(in Instance, data MessageResp, opt ButtonOptions) {
 		modules.StrlogV("Clicked Button", opt.Button.Label, s)
 	case 429:
 		in.TokenProps.RateLimit = data.Retry
-		modules.Sleep(time.Duration(data.Retry), in)
+
 	default:
 		modules.StrlogE("Failed To Click Button", string(body), s)
 	}
 }
 
-func (*Instance) Boost(in Instance, ID string) {
+func (in *Instance) Boost(ID string) {
 	s := time.Now()
 	req, err := http.NewRequest("GET",
 		"https://discord.com/api/v9/users/@me/guilds/premium/subscription-slots",
 		nil,
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	Hd.Header(req, map[string]string{
 		"authorization":      in.Token,
@@ -883,13 +1007,13 @@ func (*Instance) Boost(in Instance, ID string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
 		"referer":            "https://discord.com/channels/@me",
 	})
 	resp, err := in.Client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	var data []BoostResp
@@ -927,13 +1051,13 @@ func (*Instance) Boost(in Instance, ID string) {
 				"user-agent":         in.BrowserClient.Agent,
 				"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 				"sec-ch-ua":          in.SecUA(in),
-				"x-discord-timezone": in.TimeZones(),
+				"x-discord-timezone": in.TimeZone,
 				"x-super-properties": in.Xprop,
 				"referer":            "https://discord.com/channels/@me",
 			})
 			res, er := in.Client.Do(re)
 			if er != nil {
-				log.Fatal(er)
+				log.Println(er)
 			}
 			defer res.Body.Close()
 
@@ -947,12 +1071,12 @@ func (*Instance) Boost(in Instance, ID string) {
 	}
 }
 
-func (*Instance) VoiceChat(in Instance, opt VcOptions) {
+func (in *Instance) VoiceChat(opt VcOptions) {
 	Ws := Sock{}
 	s := time.Now()
-	_, _, conn := Ws.Connect(in.Token, in)
+	_, con, _ := Ws.Connect(in.Token, in)
 	for {
-		conn.Ws.WriteJSON(map[string]interface{}{
+		con.Ws.WriteJSON(map[string]interface{}{
 			"op": 4,
 			"d": map[string]interface{}{
 				"guild_id":   opt.GID,
@@ -961,7 +1085,7 @@ func (*Instance) VoiceChat(in Instance, opt VcOptions) {
 				"self_deaf":  opt.Deaf,
 			},
 		})
-		_, b, _ := conn.Ws.ReadMessage()
+		_, b, _ := con.Ws.ReadMessage()
 
 		var data WsResp
 		json.Unmarshal(b, &data)
@@ -977,23 +1101,57 @@ func (*Instance) VoiceChat(in Instance, opt VcOptions) {
 		if modules.Contains(Events, data.Name) {
 			modules.StrlogV(fmt.Sprintf("Connected %s[%s]%s", g, r+modules.HalfToken(in.Token, 0)+g, r), data.Name, s)
 			time.Sleep(30 * time.Second)
-			continue
 		} else {
 			modules.StrlogE(fmt.Sprintf("Failed %s[%s]%s", g, r+modules.HalfToken(in.Token, 0)+g, r), data.Name, s)
 			time.Sleep(3 * time.Second)
-			continue
 		}
-		//modules.StrlogV(fmt.Sprintf("Connected %s[%s]%s", g, r+modules.HalfToken(in.Token, 0)+g, r), opt.CID, s)
-		//time.Sleep(30 * time.Millisecond)
 	}
 }
 
-func (*Instance) OnBoard(in Instance, GID string) {
-	// TODO: make this!
-	modules.OnboardingData(in, GID)
+func (in *Instance) SoundBoard(CID string, sound SoundBoardOptions) {
+	s := time.Now()
+	req, err := http.NewRequest("POST",
+		"https://discord.com/api/v9/channels/"+CID+"/voice-channel-effects",
+		modules.Marsh(map[string]interface{}{
+			"emoji_name": sound.Emoji,
+			"sound_id":   sound.ID,
+			"emoji_id":   nil,
+		}),
+	)
+	if err != nil {
+		return
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+		"referer":            "https://discord.com/",
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return
+	}
+	switch resp.StatusCode {
+	case 204:
+		modules.StrlogV("Played Sound", sound.Emoji, s)
+	case 429:
+		in.TokenProps.RateLimit = 1
+	default:
+		modules.StrlogE("Failed To Play Sound", resp.Status, s)
+	}
+}
+
+func (in *Instance) OnBoard(GID string, Resp []string) {
+	s := time.Now()
 	req, err := http.NewRequest("POST", fmt.Sprintf(
 		"https://discord.com/api/v9/guilds/%s/onboarding-responses", GID),
-		nil,
+		modules.Marsh(OnBoardPayload{
+			Responses: Resp,
+		}),
 	)
 	if err != nil {
 		log.Println(err)
@@ -1005,7 +1163,7 @@ func (*Instance) OnBoard(in Instance, GID string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": in.TimeZones(),
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
 		"referer":            "https://discord.com/channels/" + GID + "/onboarding",
 	})
@@ -1015,17 +1173,15 @@ func (*Instance) OnBoard(in Instance, GID string) {
 		return
 	}
 	defer resp.Body.Close()
-	var data struct{}
 	body, err := io.ReadAll(resp.Body)
-	if err = json.Unmarshal(body, &data); err != nil {
+	if err != nil {
 		log.Println(err)
 	}
-
 	switch resp.StatusCode {
 	case 200:
-
+		modules.StrlogV("Boarded On", "", s)
 	default:
-
+		log.Println(string(body))
 	}
 
 }
