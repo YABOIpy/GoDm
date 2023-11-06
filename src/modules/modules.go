@@ -17,7 +17,7 @@ import (
 	"time"
 
 	fhttp "github.com/Danny-Dasilva/fhttp"
-	"github.com/wasilibs/go-re2"
+	"github.com/spf13/cast"
 )
 
 // LoadConfig Loads the json configuration file
@@ -29,8 +29,7 @@ func (m *Modules) LoadConfig(filename string) (Config, error) {
 	}
 	defer conf.Close()
 
-	err = json.NewDecoder(conf).Decode(&config)
-	if err != nil {
+	if err = json.NewDecoder(conf).Decode(&config); err != nil {
 		return config, err
 	}
 
@@ -38,76 +37,298 @@ func (m *Modules) LoadConfig(filename string) (Config, error) {
 }
 
 // Cookies Gets cookies off discord.com
-func (m *Modules) Cookies() (string, Config) {
+func (m *Modules) Cookies() (cookie string) {
 	resp, err := http.Get("https://discord.com")
 	if err != nil {
 		return m.Cookies()
 	}
 	defer resp.Body.Close()
-	cookieData := CookieData{
-		Cookies: make(map[string]*http.Cookie),
-	}
 
 	if resp.Cookies() != nil {
-		for _, cookie := range resp.Cookies() {
-			switch cookie.Name {
-			case "__dcfduid":
-				cookieData.Cookies[cookie.Name] = cookie
-				m.Dcfd = cookie.Value
-			case "__sdcfduid":
-				cookieData.Cookies[cookie.Name] = cookie
-				m.Sdcfd = cookie.Value
-			case "__cfruid":
-				cookieData.Cookies[cookie.Name] = cookie
-				m.Cfruid = cookie.Value
-			}
+		for _, c := range resp.Cookies() {
+			cookie += fmt.Sprintf("%s=%s; ", c.Name, c.Value)
 		}
+		return cookie
 	} else {
 		return m.Cookies()
-	}
-
-	return fmt.Sprintf("__dcfduid=%s; __sdcfduid=%s; __cfruid=%s; locale=us", m.Dcfd, m.Sdcfd, m.Cfruid), Config{
-		Dcfd: m.Dcfd, Sdcfd: m.Sdcfd, Cfruid: m.Cfruid, Cookie: cookieData,
 	}
 }
 
 // MessageData Get Data from a message within a Channel returns type []MessageResp
-func (m *Modules) MessageData(in Instance, CID string, MID string) []MessageResp {
+func (in *Instance) MessageData(CID, MID string) []MessageResp {
+	s := time.Now()
 	req, err := fhttp.NewRequest("GET", fmt.Sprintf(
 		"https://discord.com/api/v9/channels/%s/messages?limit=1&around=%s", CID, MID),
 		nil,
 	)
 	if err != nil {
 		log.Println(err)
-		return []MessageResp{}
+		return nil
 	}
 	Hd.Header(req, map[string]string{
 		"authorization":      in.Token,
 		"cookie":             in.Cookie,
 		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
 		"sec-ch-ua":          in.SecUA(in),
-		"x-discord-timezone": "Europe/Amsterdam",
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
 	})
 
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return []MessageResp{}
+		return nil
 	}
 
 	defer resp.Body.Close()
 	var data []MessageResp
 	body, err := io.ReadAll(resp.Body)
-	err = json.Unmarshal(body, &data)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+		modules.StrlogE("Failed To Get Message Data", string(body), s)
+	}
+
+	return data
+}
+
+func (in *Instance) FetchMessages(CID string, limit int) (data []ChannelMessages) {
+	req, err := fhttp.NewRequest("GET",
+		fmt.Sprintf("https://discord.com/api/v9/channels/%s/messages?limit=%s", CID, cast.ToString(limit)),
+		nil,
+	)
 	if err != nil {
+		log.Println(err)
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
 		log.Println(err)
 	}
 	return data
 }
 
-// TODO
-func (m *Modules) OnboardingData(in Instance, GID string) {
+func (in *Instance) OpenChannels() (data []Friend) {
+	req, err := fhttp.NewRequest("GET",
+		"https://discord.com/api/v9/users/@me/channels",
+		nil,
+	)
+	if err != nil {
+		return nil
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+
+	switch resp.StatusCode {
+	case 200:
+		return data
+	default:
+		return nil
+	}
+}
+
+func (in *Instance) UserInfo(ID string) (data UserInfo) {
+	req, err := fhttp.NewRequest("GET",
+		"https://discord.com/api/v9/users/"+ID,
+		nil,
+	)
+	if err != nil {
+		return data
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return data
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+	return data
+}
+
+func (in *Instance) Friends() (data []Friend) {
+	req, err := fhttp.NewRequest("GET",
+		"https://discord.com/api/v9/users/@me/relationships",
+		nil,
+	)
+	if err != nil {
+		return nil
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+
+	switch resp.StatusCode {
+	case 200:
+		return data
+	default:
+		return nil
+	}
+}
+
+func (in *Instance) Guilds() []Guilds {
+	req, err := fhttp.NewRequest("GET",
+		"https://discord.com/api/v9/users/@me/guilds",
+		nil,
+	)
+	if err != nil {
+		return nil
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	defer resp.Body.Close()
+	var data []Guilds
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+
+	switch resp.StatusCode {
+	case 200:
+		return data
+	default:
+		return nil
+	}
+}
+func (in *Instance) Guild(GID string) (data Server) {
+	req, err := fhttp.NewRequest("GET",
+		"https://discord.com/api/v9/guilds/"+GID,
+		nil,
+	)
+	if err != nil {
+		return
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua-platform": in.Quote(in.BrowserClient.OS),
+		"sec-ch-ua":          in.SecUA(in),
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+
+	return data
+}
+
+func (in *Instance) GuildJoinData(invite string) (data JoinResp) {
+	req, err := fhttp.NewRequest("GET", fmt.Sprintf(
+		"https://discord.com/api/v9/invites/%s?inputValue=%s&with_counts=true&with_expiration=true", invite, invite),
+		nil,
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	Hd.Header(req, map[string]string{
+		"authorization":      in.Token,
+		"cookie":             in.Cookie,
+		"user-agent":         in.BrowserClient.Agent,
+		"sec-ch-ua":          in.SecUA(in),
+		"referer":            "https://discord.com/channels/@me",
+		"x-discord-timezone": in.TimeZone,
+		"x-super-properties": in.Xprop,
+	})
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+
+	return data
+}
+
+func (in *Instance) OnboardingData(GID string) (data Onboarding) {
 	req, err := fhttp.NewRequest("GET", fmt.Sprintf(
 		"https://discord.com/api/v9/guilds/%s/onboarding", GID),
 		nil,
@@ -122,10 +343,9 @@ func (m *Modules) OnboardingData(in Instance, GID string) {
 		"user-agent":         in.BrowserClient.Agent,
 		"sec-ch-ua":          in.SecUA(in),
 		"referer":            "https://discord.com/channels/" + GID + "/onboarding",
-		"x-discord-timezone": "Europe/Amsterdam",
+		"x-discord-timezone": in.TimeZone,
 		"x-super-properties": in.Xprop,
 	})
-
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		log.Println(err)
@@ -134,21 +354,20 @@ func (m *Modules) OnboardingData(in Instance, GID string) {
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
-	//err = json.Unmarshal(body, &data)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	return
+	if err = json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
+	}
+
+	return data
 }
 
 // Input Takes user input from the Command line
 // and returns it as a string
 func (m *Modules) Input(text string) string {
-	reader := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print(text)
-	reader.Scan()
-	return reader.Text()
+	scanner.Scan()
+	return scanner.Text()
 }
 
 func (m *Modules) InputBool(text string) bool {
@@ -171,16 +390,15 @@ func (m *Modules) InputInt(text string) int {
 	return d
 }
 
-// TODO: turn tokenconfig into an array...
-func (m *Modules) ReadFile(path string) ([]string, TokenConfig, error) {
+func (m *Modules) ReadFile(path string) ([]string, []TokenConfig, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, TokenConfig{}, err
+		return nil, nil, err
 	}
 	defer file.Close()
 	var (
-		mail, pass string
-		lines      []string
+		tkncfg []TokenConfig
+		lines  []string
 	)
 	scanner := bufio.NewScanner(file)
 
@@ -192,20 +410,23 @@ func (m *Modules) ReadFile(path string) ([]string, TokenConfig, error) {
 		tokens := make([]string, 0, len(lines))
 		for _, line := range lines {
 			if strings.Contains(line, ":") {
-				format := strings.Split(line, ":")
-				tokens = append(tokens, format[2])
-				mail, pass = format[0], format[1]
+				f := strings.Split(line, ":")
+				tokens = append(tokens, f[2])
+				tkncfg = append(tkncfg, TokenConfig{
+					Email: f[0],
+					Pass:  f[1],
+				})
 			}
 		}
-		if len(tokens) > 0 {
+		if len(tokens) > IntNil {
 			lines = tokens
 		}
 	}
 
-	return lines, TokenConfig{Email: mail, Pass: pass}, scanner.Err()
+	return lines, tkncfg, scanner.Err()
 }
 
-func (m *Modules) ReadDirectory(path string, end string) (f []string) {
+func (m *Modules) ReadDirectory(path, end string) (f []string) {
 	Files, err := os.ReadDir(path)
 	if err != nil {
 		log.Fatal(err)
@@ -243,7 +464,7 @@ func (m *Modules) TrimZero(discrim string) string {
 	return discrim
 }
 
-func (m *Modules) WriteFile(files string, item string) {
+func (m *Modules) WriteFile(files, item string) {
 	f, err := os.OpenFile(files, os.O_RDWR|os.O_APPEND, 0660)
 	if err != nil {
 		log.Println(err)
@@ -288,7 +509,7 @@ func (m *Modules) FilterArray(data []string) []string {
 }
 
 // FetchInputData read thefiles needed for launching GoDm
-func (m *Modules) FetchInputData() ([]string, TokenConfig, []string) {
+func (m *Modules) FetchInputData() ([]string, []TokenConfig, []string) {
 	t, d, err := m.ReadFile("tokens.txt")
 	if err != nil {
 		log.Println("Failed To Load Tokens.txt")
@@ -300,7 +521,7 @@ func (m *Modules) FetchInputData() ([]string, TokenConfig, []string) {
 	return t, d, p
 
 }
-func (m *Modules) Sleep(t time.Duration, in Instance) bool {
+func (m *Modules) Sleep(t time.Duration, in *Instance) bool {
 	if in.Cfg.Mode.Configs.RateLimit {
 		time.Sleep(t * time.Second)
 		return true
@@ -324,74 +545,6 @@ func (m *Modules) Nonce() string {
 	return strconv.FormatInt((now-epoch)<<22, 10)
 }
 
-// BuildInfo Get discords current build number
-func BuildInfo() string {
-	buildNumber := make(map[string]string)
-
-	js := re2.MustCompile(`([a-zA-Z0-9]+)\.js`)
-	build := re2.MustCompilePOSIX(`Build Number: "\)\.concat\("([0-9]{4,8})"`)
-	c, _ := modules.Cookies()
-	Client := &fhttp.Client{}
-
-	breq, err := fhttp.NewRequest("GET",
-		"https://discord.com/app",
-		nil,
-	)
-	Hd.Header(breq, map[string]string{
-		"accept-encoding": "identify",
-		"cookie":          c,
-	})
-
-	res, err := Client.Do(breq)
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
-
-	rs := js.FindAllString(string(body), -1)
-	asset := rs[len(rs)-1]
-	if strings.Contains(asset, "invisible") {
-		asset = rs[len(rs)-2]
-	}
-	req, err := fhttp.NewRequest("GET", ""+
-		"https://discord.com/assets/"+asset,
-		nil,
-	)
-
-	Hd.Header(req, map[string]string{
-		"accept-encoding": "identify",
-		"cookie":          c,
-	})
-	resp, err := Client.Do(req)
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
-	defer resp.Body.Close()
-
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
-	fmt.Println(string(b))
-	buildInfos := strings.Split(
-		strings.ReplaceAll(build.FindAllString(string(b), -1)[0], " ", ""),
-		",",
-	)
-	bn := strings.Split(buildInfos[0], `("`)
-	buildNumber["stable"] = strings.ReplaceAll(bn[len(bn)-1], `"`, ``)
-
-	return buildNumber["stable"]
-}
-
 // HalfToken Splits Tokens using the "." separator
 func (m *Modules) HalfToken(T string, v int) string {
 	return strings.Split(T, ".")[v]
@@ -409,7 +562,7 @@ func (c *CCSeed) GenerateSeed() int64 {
 	c.seed = time.Now().UnixNano()
 	return c.seed
 }
-func (in *Instance) SecUA(d Instance) string {
+func (in *Instance) SecUA(d *Instance) string {
 	return fmt.Sprintf(`"Not?A_Brand";v="8", "%s";v="%s"`, d.BrowserClient.Name, d.BrowserClient.Version)
 }
 
@@ -433,6 +586,7 @@ func (in *Instance) Xprops(data ClientData) string {
 		ReleaseChannel:     "stable",
 		ClientBuildNumber:  cbn,
 		ClientEventSource:  nil,
+		DesignID:           0,
 	})
 	if err != nil {
 		log.Println(err)
@@ -440,9 +594,20 @@ func (in *Instance) Xprops(data ClientData) string {
 	return base64.StdEncoding.EncodeToString(d)
 }
 
-func Content[T map[string]string | map[string]interface{}](data T) string {
-	d, _ := json.Marshal(data)
-	return strconv.Itoa(len(d))
+func CreateRange(i int) (v []interface{}) {
+	switch i {
+	case 0:
+		v = []interface{}{[2]int{0, 99}}
+	case 1:
+		v = []interface{}{[2]int{0, 99}, [2]int{100, 199}}
+	default:
+		v = []interface{}{[2]int{0, 99}, [2]int{100, 199}, [2]int{i * 100, (i * 100) + 99}}
+	}
+	return v
+}
+
+func RGB(red, green, blue int) int {
+	return (red * 256 * 256) + (green * 256) + blue
 }
 
 // GetRandomBrowser Returns a random browser from Browser
@@ -450,7 +615,6 @@ func (in *Instance) GetRandomBrowser(browsers []BrowserData) BrowserData {
 	return browsers[rand.Intn(len(browsers))]
 }
 
-// could've used generics for both
 func (in *Instance) GetRandomData(data []string) string {
 	RSeed.GenerateSeed()
 	return data[rand.Intn(len(data))]
@@ -487,8 +651,8 @@ func (m *Modules) RandString(length int) string {
 }
 
 func (m *Modules) Contains(data []string, v string) bool {
-	for _, i := range data {
-		if i == v {
+	for _, k := range data {
+		if k == v {
 			return true
 		}
 	}
