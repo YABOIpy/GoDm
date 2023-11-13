@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	shttp "net/http"
-	"time"
 )
 
 func (ws *Sock) Connect(Token string, in *Instance) (*WsResp, *Sock, error) {
@@ -41,7 +40,7 @@ func (ws *Sock) Connect(Token string, in *Instance) (*WsResp, *Sock, error) {
 
 func (ws *Sock) ScrapeUsers(GID, CID string, iter int) []Member {
 
-	time.Sleep(time.Second)
+	//time.Sleep(time.Second)
 	ws.GuildConnection(GID, CID, iter)
 
 	_, b, _ := ws.Ws.ReadMessage()
