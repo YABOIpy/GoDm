@@ -197,7 +197,6 @@ ________________________
 # TODO
 ```
 Captcha Support
-fix buildnum fetcher
 fix file structure
 Clean Some code / nesting
 ```
