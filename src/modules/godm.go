@@ -84,7 +84,6 @@ retry:
 
 	Hd.Header(req2, map[string]string{
 		"authorization":      in.Token,
-		"content-length":     "49",
 		"cookie":             in.Cookie,
 		"user-agent":         in.BrowserClient.Agent,
 		"referer":            "https://discord.com/",
