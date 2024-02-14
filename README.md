@@ -7,7 +7,7 @@
 - [Configuration](#Config)
 - [Donate](#Donations)
 
-recode soon.
+being recoded. probably wont be maintained after.
 # Join the Chat!: https://t.me/+ZsFhZWu8ZJMyZmNk
 
 # About
