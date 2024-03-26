@@ -177,6 +177,7 @@ Recommended Config:
 
 ```md
 ETH: 0xf96F04521F59dDcEc404d3A90Bdf91715D202a06
+BTC: bc1q5lunjjahjemql8mfyszpjfcp4cwu5u4vgu69jf
 BTC: bc1qk9pdv82jd9zletczuw08jhg9ly4gn7y9g55dfq
 LTC: LLMauaJr69njn1wug4E169oqFsFTDKSirq
 XMR: 46TwyYsGQCqUREXJa2jgKTb6awTaftkSmPvh3aoz5se1MokrH38UvN7Co1doJ4uhLc3MeEbTEe5evMu6z5oTMbra4Hzjgc6
