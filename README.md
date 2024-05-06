@@ -123,7 +123,7 @@ Recommended Config:
     },
     "Discord": {
       "Ver": 2.0,
-      "CapApi": ["captcha-service", "service-api-key"],
+      "CapApi": ["captcha-service", "service-api-key"], <- no captcha support until recode.
       "Presence": ["online", "dnd", "idle"], 
       "Message": [
         {
